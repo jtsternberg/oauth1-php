@@ -214,8 +214,8 @@ Token and Single-Use Token Secret and deliver it to the Consumer via an HTTP
 Redirect. The response for a Web-based Consumer includes the following
 application/x-www-form-urlencoded GET parameters: 
 
-* oauth_su_token - The Single-Use Token. 
-* oauth_su_secret - The Single-Use Token Secret. 
+* oauth_token - The Single-Use Token. 
+* oauth_secret - The Single-Use Token Secret. 
 * if provided by the consumer in the initial authorization request: oauth_state
   - The unmodified content provided by the Consumer during the Request step.
 
