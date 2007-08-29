@@ -448,10 +448,6 @@ following signing algorithm SHALL be used to generate the value of the
 5. The full signed request is then:
 
     GET http://twitter.com/statuses/friends/123456.json?page=3&count=50&oauth_key=0685bd91&oauth_token=540ad18&oauth_nonce=MTgzNTYxODk4Mw&oauth_ts=1181537927&oauth_sigalg=sha1&oauth_sig=2d047740b53ae16f670750bef5bb5c2a0f398f30
-      
-    XXX It feels like this ends early. What does twitter do? I assume it
-    validates the signature, of course, but shouldn't the protocol for that be
-    spelled out? - Rich Conlan, 08/14/07 8:27 AM
 
 ### Normalizing Request Parameters
 
