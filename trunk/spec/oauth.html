@@ -142,7 +142,7 @@ Consumer Secret to make authenticated requests to the Service Provider. </li>
 Provider to authenticate the Consumer (as opposed to authenticate the User).
 This allows the Service Provider to provide different access levels to
 Consumers (such as disabling API throttling or allowing access to more
-resources).The Service Provider must allow Consumer Developers to obtain a
+resources). The Service Provider must allow Consumer Developers to obtain a
 Consumer Key and corresponding Consumer Secret. The provisioning of these is
 entirely up to the Service Provider. The Consumer Key must be a string
 suitable for transmission in HTTP request parameters. The Consumer Secret may
@@ -176,7 +176,7 @@ URLs. </p>
 <h4 id="obtaining_a_single_use_token">Obtaining a Single-Use Token</h4>
 
 <p>UI Note: It should be noted that if the User will be entering the Single-Use
-Token manually, such as on a mobile device, you should create a shorter
+Token manually, such as on a mobile device, Service Providers should create a shorter
 &#8220;simplified&#8221; token.</p>
 
 <h4 id="web_based_consumers">Web-based Consumers</h4>
@@ -367,13 +367,13 @@ with the Single-Use Token and Secret per the signing instructions below.</p>
 
 <h6 id="response">Response</h6>
 
-<p>If the request is valid, the Service Provider responds with text like so: </p>
+<p>If the request is valid, the Service Provider SHALL respond with text like so: </p>
 
 <pre><code>token=37bb49b4
 secret=d0e46c19
 </code></pre>
 
-<p>where the token and secret are encoded like <code>application/x-www-form-urlencoded</code>,
+<p>Where the token and secret are encoded like <code>application/x-www-form-urlencoded</code>,
 followed by Service Provider specific data, as defined by the Service Provider&#8217;s
 API documentation. The Multi-Use Token and Secret are stored by the Consumer to
 use when signing future requests. </p>
@@ -387,7 +387,7 @@ wasn&#8217;t authorized.</p>
 <p>All OAuth API requests MUST be signed by the Consumer and the signature verified
 by the Service Provider. The following steps describe the signature process: </p>
 
-<h5 id="request_parameters">Request Parameters</h5>
+<h5 id="oauth_request_parameters">OAuth Request Parameters</h5>
 
 <p>All are required except where stated.</p>
 
@@ -404,8 +404,8 @@ by the Service Provider. The following steps describe the signature process: </p
 : A one-time use value to verify the request has not been made before. See the
 &#8220;Generating Nonces&#8221; section. </li>
 <li><code>oauth_ts</code>
-: An integer representing the time the request was sent, expressed in number of
-seconds after January 1, 1970 00:00:00 GMT. </li>
+: An integer representing the time of request, expressed in number of
+seconds after January 1, 1970 00:00:00 GMT.</li>
 <li><code>oauth_sigalg</code>
 : The hashing algorithm that the Consumer used to sign the request. </li>
 <li><code>oauth_sig</code>
@@ -421,22 +421,26 @@ http_request_method, http_request_uri, normalized_request_parameters,
 oauth_nonce, oauth_ts
 </code></pre>
 
-<p>In addition, any application specific parameters MUST be included in the
-Consumer&#8217;s Request and are the subject of the signature. </p>
-
 <p>After the Consumer has normalized the request parameters (see below), the
 following signing algorithm SHALL be used to generate the value of the
 <code>oauth_sig</code>: </p>
 
-<ul>
-<li>obtain the normalized<em>request</em>parameters, according to the algorithm
-described below (see: Normalizing Request Parameters)</li>
-<li>generate an oauth_nonce (see Generating Nonces) </li>
-<li><p>concatenate the parameters in the following order: </p>
+<ol>
+<li><p>generate an oauth_nonce (see Generating Nonces) </p></li>
+<li><p>normalize OAuth Request Parameters</p>
+
+<ol>
+<li>Escape the request parameter values using the percent-encoding (%xx) mechanism described in RFC3986.</li>
+<li>Concatenate the parameters resulting in name-value pairs separated by the
+ASCII &#8216;=&#8217; symbol.
+e.g., &#8220;oauth<em>secret=elephant&#8221; and &#8220;oauth</em>consumer_key=foo&#8221;</li>
+</ol></li>
+<li><p>Concatenate the resulting name-value pairs into one string separated by the ASCII &#8216;&amp;&#8217;
+symbol in the following order: </p>
 
 <p>oauth<em>secret, oauth</em>consumer<em>key, oauth</em>token, http<em>request</em>method,
-http<em>request</em>uri, normalized<em>request</em>parameters, oauth<em>nonce, oauth</em>ts </p></li>
-<li><p>sign or hash the concatenated string according to the oauth_sigalg: </p>
+http<em>request</em>uri, normalized<em>request</em>parameters, oauth<em>nonce, oauth</em>ts</p></li>
+<li><p>sign or hash the concatenated string according to the chosen value of oauth_sigalg: </p>
 
 <p>oauth<em>sig = md5(concatenated</em>string) </p>
 
@@ -448,7 +452,7 @@ http<em>request</em>uri, normalized<em>request</em>parameters, oauth<em>nonce, o
 (in the case of using x509 certs, the Service Provider would have the
 Consumer&#8217;s public key and therefore would provide an empty string as
 the secret)</p></li>
-</ul>
+</ol>
 
 <h5 id="example">Example</h5>
 
@@ -457,81 +461,55 @@ the secret)</p></li>
 <li><p>The basic API request looks like so:</p>
 
 <p>http://twitter.com/statuses/with_friends/123456.json?page=3&amp;count=50</p></li>
-<li><p>Assuming your Consumer key is <code>0685bd91</code>, your Shared Secret is <code>3a2cd35</code>,
-and your OAuth Token is <code>540ad18</code>, your generated <code>oauth_nonce</code> is
-<code>MTgzNTYxODk4Mw</code>, the current <code>timestamp</code> is <code>1185517832</code>, and you are using
-SHA1 as your <code>oauth_sigalg</code>, we calculate the <code>oauth_sig</code> as:</p>
+<li><p>Assuming the use of the SHA1 signature method and the following values:</p>
 
-<p>oauth_sig = SHA1(&#8220;3a2cd35 0685bd91 540ad18 GET /statuses/friends/123456.json count50page3 MTgzNTYxODk4Mw 1185517832&#8221;)</p></li>
-<li><p>We need to pass to the server (in cleartext) the Consumer key (<code>oauth_key</code>),
+<ul>
+<li>oauth_secret => 3a2cd35</li>
+<li>oauth<em>consumer</em>key => 0685bd91</li>
+<li>oauth_token => 540ad18</li>
+<li>oauth<em>token</em>secret => x2s55k0</li>
+<li>oauth_nonce => MTgzNTYxODk4Mw</li>
+<li><p>oauth_ts => 1185517832</p>
+
+<p>oauth<em>sig = SHA1(&#8220;oauth</em>secret=3a2cd35&amp;oauth<em>consumer</em>key=0685bd91&amp;oauth<em>token=540ad18&amp;oauth</em>token<em>secret=x2s55k0&amp;http</em>request<em>method=GET&amp;http</em>request<em>uri=http%3A%2F%2Ftwitter.com%2Fstatuses%2Ffriends/123456.json&amp;normalized</em>request<em>parameters=count%3D50%26page%3D3&amp;oauth</em>nonce=MTgzNTYxODk4Mw&amp;oauth_ts=1185517832&#8221;)</p></li>
+</ul></li>
+<li><p>We need to pass to the server (in cleartext) the Consumer key (<code>oauth_consumer_key</code>),
 the Token (<code>oauth_token</code>), the timestamp (<code>oauth_ts</code>), the nonce
 (<code>oauth_nonce</code>), the signing algorithm (oauth_sigalg), and the signed
 request (<code>oauth_sig</code>).
-Clients MUST NOT send the shared secret with the request, since doing so
+Clients MUST NOT send any of the secrets with the request, since doing so
 would compromise the entire request, as well as subsequent requests.</p></li>
 <li><p>The full signed request is then:</p>
 
-<p>GET http://twitter.com/statuses/friends/123456.json?page=3&amp;count=50&amp;oauth<em>key=0685bd91&amp;oauth</em>token=540ad18&amp;oauth<em>nonce=MTgzNTYxODk4Mw&amp;oauth</em>ts=1181537927&amp;oauth<em>sigalg=sha1&amp;oauth</em>sig=7f762ca98931f60715c5452b09a9b56914d68568</p>
-
-<p>XXX It feels like this ends early. What does twitter do? I assume it
-validates the signature, of course, but shouldn&#8217;t the protocol for that be
-spelled out? - Rich Conlan, 08/14/07 8:27 AM</p></li>
+<p>GET http://twitter.com/statuses/friends/123456.json?page=3&amp;count=50&amp;oauth<em>key=0685bd91&amp;oauth</em>token=540ad18&amp;oauth<em>nonce=MTgzNTYxODk4Mw&amp;oauth</em>ts=1181537927&amp;oauth<em>sigalg=sha1&amp;oauth</em>sig=2d047740b53ae16f670750bef5bb5c2a0f398f30</p></li>
 </ol>
 
 <h3 id="normalizing_request_parameters">Normalizing Request Parameters</h3>
 
-<p>The Consumer MUST first normalize the request parameters by following the
-steps below. It should be noted that the Consumer MUST NOT include any OAuth
-parameters, those beginning with &#8220;oauth&#8221;, in the data to be signed . The
-normalized string MUST then be used when generating the signature for a
-request. </p>
+<p>The Consumer MUST first normalize request parameters by following the steps
+below. OAuth Request Parameters (see above) MUST NOT be included in this
+process. The normalized string MUST then be used when generating the signature
+for a request.</p>
 
 <ol>
-<li>Sort the request parameters alphabetically by parameter name:
-e.g., page=3, count=50 becomes count=50, page=3</li>
-<li>Concatenate the name-value pairs:
-e.g., count50 and page3</li>
-<li>Concatenate all the resulting parameter strings:
-e.g., count50page3</li>
+<li>Escape the request parameter names and values using the percent-encoding
+(%xx) mechanism described in RFC3986.</li>
+<li>Sort the request parameters alphabetically by parameter name. If two or
+more parameters share the same name, then sort those parameters by their
+values.
+e.g., &#8220;count=50&#8221;, &#8220;page=3&#8221;
+e.g., &#8220;count=3&#8221;, &#8220;count=50&#8221;, &#8220;page=3&#8221;</li>
+<li>Concatenate the parameters resulting in name-value pairs separated by the
+ASCII &#8216;=&#8217; symbol.
+e.g., &#8220;count=50&#8221; and &#8220;page=3&#8221;</li>
+<li>Concatenate the name-value pairs into one string separated by the ASCII &#8216;&amp;&#8217;
+symbol.
+e.g., count=50&amp;page=3</li>
 </ol>
 
-<p>The encoding and format of the parameters and their values MUST not be changed
-during this process as the Service Provider will perform this same set of steps
+<p>The encoding and format of the parameter names and their values MUST not be changed
+during this process.  The Service Provider will perform this same set of steps
 when verifying the signature.</p>
-
-<h5 id="examples">Examples</h5>
-
-<h6 id="ruby">Ruby</h6>
-
-<p>Assuming a Hash of request parameters named <code>request_params</code>:</p>
-
-<pre><code>request_params.sort { |a,b| a[0].to_s &lt;=&gt; b[0].to_s }.map { |v| v.join('') }.join('')
-</code></pre>
-
-<h6 id="php">PHP</h6>
-
-<p>Assuming an Array of request parameters named <code>$request_params</code>:</p>
-
-<pre><code>ksort($request_params);
-
-$normalized = '';
-
-foreach ($request_params as $k =&gt; $v) {
-  $normalized .= $k . $v;
-
-}
-</code></pre>
-
-<h6 id="python">Python</h6>
-
-<p>Assuming an dictionary of request parameters named <code>request_params</code>:</p>
-
-<pre><code>normalized = ''
-keys = request_params.keys()
-keys.sort()
-for k in keys:
-  normalized += str(k)+str(request_params[k])
-</code></pre>
 
 <h3 id="generating_nonces">Generating Nonces</h3>
 
@@ -539,6 +517,24 @@ for k in keys:
 allows the Service Provider to verify that this request has never been made
 before and helps prevent against replay attacks. More information about nonces
 can be found on Wikipedia (http://en.wikipedia.org/wiki/Cryptographic_nonce).</p>
+
+<h3 id="using_http_authorization_headers">Using HTTP-Authorization Headers</h3>
+
+<p>This section defines an RFC 2617 extension to support OAuth.  It uses the standard Authorization and WWW-Authenticate headers to pass credentials rather than using URL parameters.  All Consumers SHOULD be able to supply an OAuth Authorization header as an alternative to passing URL parameters.  It is RECOMMENDED that Service Providers accept such a header and such Service Providers MUST signal Consumers by returning the OAuth WWW-Authenticate header upon all requests for the protected resource.  For the remainder of this section, we assume that the Service Provider under discussion has chosen to support this extension.</p>
+
+<p>When using a HTTP-Authorization header, the OAuth Request Parameters are not included in the body of the request.  Rather they are included as the value of the header.</p>
+
+<pre><code>Authorization: OAuth oauth_token="540ad18" oauth_key="0685bd91" oauth_nonce="MTgzNTYxODk4Mw" oauth_ts="1185517832" oauth_sigalg="SHA1" oauth_sig="2d047740b53ae16f670750bef5bb5c2a0f398f30"
+</code></pre>
+
+<p>To reject a request that lacks appropriate credentials, the Service Provider MUST respond with a 401 Unauthorized response.  Such a response MUST include at least one OAuth WWW-Authenticate header and MAY include additional WWW-Authenticate headers:</p>
+
+<pre><code>401 Unauthorized
+...
+WWW-Authenticate: OAuth
+</code></pre>
+
+<p>A Consumer MAY also include an empty, token-less OAuth Authorization header on any HTTP request to inform a Service Provider that it supports OAuth.  The Service Provider MUST then respond with the appropriate WWW-Authenticate header for the requested resource in the response.  For example, a Consumer could inquire using HEAD and then adjust its UI if the Service Provider supports OAuth.</p>
 
 <h3 id="implementation_suggestions">Implementation Suggestions</h3>
 
@@ -548,50 +544,35 @@ unbearable burden on the server for tracking and storing nonces. Ideally
 servers would provide a method for retrieving what they think the current time
 is.</p>
 
-<h3 id="open_questions">Open Questions</h3>
-
-<ul>
-<li>Recommended Error messages &amp; HTTP response codes</li>
-<li>Specifically, handling of expired / invalid tokens, user-declined
-authorization, etc.</li>
-<li>HTTP Headers
-<ul>
-<li>Not mandated, but having a standard for including OAuth in the
-HTTP_AUTHORIZATION header would be nice.</li>
-</ul></li>
-<li>How to sign POSTs / PUTs etc.</li>
-<li>there is an explanation in the REST book that might help with this.</li>
-<li>Expiration of tokens, provisioning of Consumer keys and secrets are beyond
-the scope. As are application specific permissions.</li>
-<li>these things <em>might</em> get included in future revision of the OAuth spec as
-they become emergent practices.</li>
-</ul>
-
 <h2 id="error_messages">Error Messages</h2>
 
 <ul>
 <li>HTTP 400 Bad Request
 <ul>
-<li>Bad nonce</li>
-<li>Bad timestamp</li>
+<li>Invalid Timestamp</li>
+<li>Unsupported Signing Algorithm</li>
 </ul></li>
 <li>HTTP 401 Unauthorized
 <ul>
-<li>Invalid Consumer key</li>
-<li>Invalid token</li>
-<li>Invalid sig - AWS does a nice thing here where they give you the sig string (minus
-secret) that they expected you to be signing for easy comparison</li>
-<li>Token expired</li>
-<li>Unsupported signing algorithm (the suggested / basic one should be
-UNIVERSALLY IMPLEMENTED and provide an ADEQUATE level of security given the
-threat model)</li>
-<li>User denied</li>
-<li>User revoked token</li>
+<li>Invalid Consumer Key</li>
+<li>Invalid Token</li>
+<li>Invalid Signature</li>
+<li>Nonce Spent</li>
 </ul></li>
 </ul>
 
-<p>Security Considerations</p>
+<h2 id="security_considerations">Security Considerations</h2>
 
 <ul>
 <li>Credentials as GET params can get logged in various places</li>
+</ul>
+
+<h2 id="open_questions">Open Questions</h2>
+
+<ul>
+<li>HTTP Headers
+<ul>
+<li>Not mandated, but having a standard for including OAuth in the
+HTTP_AUTHORIZATION header would be nice.</li>
+</ul></li>
 </ul>
