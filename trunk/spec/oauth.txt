@@ -489,38 +489,23 @@ unbearable burden on the server for tracking and storing nonces. Ideally
 servers would provide a method for retrieving what they think the current time
 is.
 
-### Open Questions
-  
-* Recommended Error messages & HTTP response codes
-* Specifically, handling of expired / invalid tokens, user-declined
-  authorization, etc.
-* HTTP Headers
-  * Not mandated, but having a standard for including OAuth in the
-    HTTP_AUTHORIZATION header would be nice.
-* How to sign POSTs / PUTs etc.
-* there is an explanation in the REST book that might help with this.
-* Expiration of tokens, provisioning of Consumer keys and secrets are beyond
-  the scope. As are application specific permissions.
-* these things *might* get included in future revision of the OAuth spec as
-  they become emergent practices.
-
 ## Error Messages
 
 * HTTP 400 Bad Request
-  * Bad nonce
-  * Bad timestamp
+  * Invalid Timestamp
+  * Unsupported Signing Algorithm
 * HTTP 401 Unauthorized
-  * Invalid Consumer key
-  * Invalid token
-  * Invalid sig - AWS does a nice thing here where they give you the sig string (minus
-    secret) that they expected you to be signing for easy comparison
-  * Token expired
-  * Unsupported signing algorithm (the suggested / basic one should be
-    UNIVERSALLY IMPLEMENTED and provide an ADEQUATE level of security given the
-    threat model)
-  * User denied
-  * User revoked token
+  * Invalid Consumer Key
+  * Invalid Token
+  * Invalid Signature
+  * Nonce Spent
 
-Security Considerations
+## Security Considerations
 
 * Credentials as GET params can get logged in various places
+
+## Open Questions
+
+* HTTP Headers
+  * Not mandated, but having a standard for including OAuth in the
+    HTTP_AUTHORIZATION header would be nice.
