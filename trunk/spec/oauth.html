@@ -1,550 +1,593 @@
+<h1 id="oauth_09">OAuth 0.9</h1>
 
-<h1 id='oauth_09'>OAuth 0.9</h1>
-
-<h2 id='authors'>Authors</h2>
+<h2 id="authors">Authors</h2>
 
 <ul>
 <li>Blaine Cook</li>
-
-<li>Kellan Elliott-McCrea</li>
-
+<li>Kellan Elliott-McCrea </li>
 <li>David Recordon</li>
-
 <li>Mark Atwood</li>
-
 <li>Ben Laurie</li>
-
 <li>Eran Sandler</li>
-
 <li>Chris Messina</li>
-
-<li>Leah Culver</li>
-
-<li>Eran Hammer-Lahav</li>
-
+<li>Leah Culver </li>
+<li>Eran Hammer-Lahav </li>
 <li>Larry Halff</li>
 </ul>
 
-<h2 id='description'>Description</h2>
+<h2 id="description">Description</h2>
 
-<p>The OAuth protocol enables interaction between a Web Service Provider(SP) and Consumer website or application. An example use case would be allowing Moo.com, the OAuth Consumer, to access private photos stored on Flickr.com, the OAuth Service Provider. This allows access to protected resources (Protected Resources) via an API without requiring the User to provide their Flickr.com (Service Provider) credentials to Moo.com (Consumer). More generically, OAuth creates a freely implementable and generic methodology for API authentication creating benefit to developers wishing to have their Consumer interact with various Service Providers.</p>
+<p>The OAuth protocol enables interaction between a Web Service Provider(SP) and
+Consumer website or application. An example use case would be allowing Moo.com,
+the OAuth Consumer, to access private photos stored on Flickr.com, the OAuth
+Service Provider. This allows access to protected resources (Protected
+Resources) via an API without requiring the User to provide their Flickr.com
+(Service Provider) credentials to Moo.com (Consumer). More generically,
+OAuth creates a freely implementable and generic methodology for API
+authentication creating benefit to developers wishing to have their Consumer
+interact with various Service Providers.</p>
 
-<p>While OAuth does not require a certain form of user interface or interaction with a User, recommendations and emerging best practices are described below. OAuth does not specify how the Service Provider should authenticate the User which makes the protocol ideal in cases where authentication credentials are not available to the Consumer, such as with OpenID. Background</p>
+<p>While OAuth does not require a certain form of user interface or interaction
+with a User, recommendations and emerging best practices are described
+below. OAuth does not specify how the Service Provider should authenticate
+the User which makes the protocol ideal in cases where authentication
+credentials are not available to the Consumer, such as with OpenID. 
+Background</p>
 
-<p>OAuth aims to unify the experience and implementation of delegated web service authentication into a single community driven protocol. OAuth builds on top of existing protocols and best practices that have been implemented independently by various web sites. An open standard supported by large and small providers alike promotes a consistent and trusted experience for both consumer application developers and the users of those applications.</p>
+<p>OAuth aims to unify the experience and implementation of delegated web service
+authentication into a single community driven protocol. OAuth builds on top of
+existing protocols and best practices that have been implemented independently
+by various web sites. An open standard supported by large and small providers
+alike promotes a consistent and trusted experience for both consumer
+application developers and the users of those applications. </p>
 
-<h2 id='definitions'>Definitions</h2>
+<h2 id="definitions">Definitions</h2>
 
 <ul>
-<li>
-<dt>Service Provider</dt>
-
-<dd>A web application that allows access via OAuth.</dd>
-</li>
-
-<li>
-<dt>User</dt>
-
-<dd>An individual user who has an account with the Service Provider.</dd>
-</li>
-
-<li>
-<dt>Consumer</dt>
-
-<dd>A website or application that uses OAuth to access the Service Provider on behalf of the User.</dd>
-</li>
-
-<li>
-<dt>Consumer Developer</dt>
-
-<dd>An individual or organization that implements a Consumer.</dd>
-</li>
-
-<li>
-<dt>Consumer Key</dt>
-
-<dd>A string which the Consumer uses to identify itself to the Service Provider.</dd>
-</li>
-
-<li>
-<dt>Consumer Secret</dt>
-
-<dd>A secret (specific to the Consumer Key) which the Consumer uses when signing OAuth requests to the Service Provider.</dd>
-</li>
-
-<li>
-<dt>Protected Resource(s)</dt>
-
-<dd>Data owned by the Service Provider for which the Consumer could obtain access through authentication.</dd>
-</li>
-
-<li>
-<dt>Single-Use Token</dt>
-
-<dd>An OAuth token which the Service Provider generates and provides to the Consumer in order to identify the User during the authentication process. The Consumer will typically exchange this for a Multi-Use Token after the User authenticates and grants permission to the Consumer.</dd>
-</li>
-
-<li>
-<dt>Single-Use Token Secret</dt>
-
-<dd>A secret, specific to the Single-Use Token, which the Consumer uses when signing OAuth requests to the Service Provider when using a Single-Use Token.</dd>
-</li>
-
-<li>
-<dt>Multi-Use Token</dt>
-
-<dd>An OAuth token which the Service Provider generates and provides to the Consumer in order to identify the User.</dd>
-</li>
-
-<li>
-<dt>Multi-Use Token Secret</dt>
-
-<dd>A secret, specific to the Multi-Use Token, which the Consumer uses when signing OAuth requests to the Service Provider on behalf of a User.</dd>
-</li>
-
-<li>
-<dt>Authorization Endpoint URL</dt>
-
-<dd>A URL provided by the Service Provider that Consumers use to obtain authorization from the User for access to the Service Provider.</dd>
-</li>
-
-<li>
-<dt>API Endpoint URL</dt>
-
-<dd>A URL provided by the Service Provider that Consumers use to make API request, including obtaining Tokens.</dd>
-</li>
-
-<li>
-<dt>Callback Endpoint URL</dt>
-
-<dd>A URL provided by the Consumer which the Service Provider uses to return a Single-Use Token and Secret.</dd>
-</li>
+<li>Service Provider
+: A web application that allows access via OAuth. </li>
+<li>User
+: An individual user who has an account with the Service Provider. </li>
+<li>Consumer
+: A website or application that uses OAuth to access the Service Provider on
+behalf of the User. </li>
+<li>Consumer Developer
+: An individual or organization that implements a Consumer. </li>
+<li>Consumer Key
+: A string which the Consumer uses to identify itself to the Service Provider. </li>
+<li>Consumer Secret
+: A secret (specific to the Consumer Key) which the Consumer uses when signing
+OAuth requests to the Service Provider.</li>
+<li>Protected Resource(s)
+: Data owned by the Service Provider for which the Consumer could obtain access
+through authentication.</li>
+<li>Single-Use Token
+: An OAuth token which the Service Provider generates and provides to the
+Consumer in order to identify the User during the authentication process. The
+Consumer will typically exchange this for a Multi-Use Token after the User
+authenticates and grants permission to the Consumer.</li>
+<li>Single-Use Token Secret
+: A secret, specific to the Single-Use Token, which the Consumer uses when
+signing OAuth requests to the Service Provider when using a Single-Use Token.</li>
+<li>Multi-Use Token
+: An OAuth token which the Service Provider generates and provides to the
+Consumer in order to identify the User. </li>
+<li>Multi-Use Token Secret
+: A secret, specific to the Multi-Use Token, which the Consumer uses when
+signing OAuth requests to the Service Provider on behalf of a User.</li>
+<li>Authorization Endpoint URL
+: A URL provided by the Service Provider that Consumers use to obtain
+authorization from the User for access to the Service Provider.</li>
+<li>API Endpoint URL
+: A URL provided by the Service Provider that Consumers use to make API
+requests, including obtaining Tokens.</li>
+<li>Callback Endpoint URL
+: A URL provided by the Consumer which the Service Provider uses to return a
+Single-Use Token and Secret.</li>
 </ul>
 
-<h2 id='protocol'>Protocol</h2>
+<h2 id="protocol">Protocol</h2>
 
-<h3 id='overview'>Overview</h3>
+<h3 id="overview">Overview</h3>
 
-<h4 id='preauthentication'>Pre-Authentication</h4>
+<h4 id="pre_authentication">Pre-Authentication</h4>
 
 <ol>
-<li>The Consumer Developer obtains a Consumer Key and a Consumer Secret from the Service Provider.</li>
+<li>The Consumer Developer obtains a Consumer Key and a Consumer Secret from
+the Service Provider.</li>
 </ol>
 
-<h4 id='authentication'>Authentication</h4>
+<h4 id="authentication">Authentication</h4>
 
 <ol>
-<li>
-<p>The Consumer attempts to obtain a Multi-Use Token and Secret on behalf of the end user.</p>
-
+<li>The Consumer attempts to obtain a Multi-Use Token and Secret on behalf of
+the end user. 
 <ul>
-<li>Web-based Consumers redirect the User to the Authorization Endpoint URL.</li>
-
-<li>Desktop-based Consumers first obtain a Single-Use Token by making a request to the API Endpoint URL then direct the User to the Authorization Endpoint URL.</li>
-
-<li>If a Service Provider is expecting Consumer that run on mobile devices or set top boxes, the Service Provider should ensure that the Authorization Endpoint URL and the Single Use Token are short and simple enough to remember for entry into a web browser.</li>
-</ul>
-</li>
-
-<li>
-<p>The User authenticates with the Service Provider.</p>
-</li>
-
-<li>
-<p>The User grants or declines permission for the Service Provider to give the Consumer a Multi-Use Token.</p>
-</li>
-
-<li>
-<p>The Service Provider provides a Multi-Use Token and Multi-Use Token Secret or indicates that the User declined to authorize the Consumer&#8217;s request.</p>
-
+<li>Web-based Consumers redirect the User to the Authorization Endpoint URL. </li>
+<li>Desktop-based Consumers first obtain a Single-Use Token by making a
+request to the API Endpoint URL then direct the User to the Authorization
+Endpoint URL.</li>
+<li>UI Note: If a Service Provider is expecting a Consumer running on a mobile
+device or set top box, the Service Provider should ensure that the
+Authorization Endpoint URL and the Single Use Token are short and simple
+enough to remember for entry into a web browser.</li>
+</ul></li>
+<li>The User authenticates with the Service Provider. </li>
+<li>The User grants or declines permission for the Service Provider to give the
+Consumer a Multi-Use Token. </li>
+<li>The Service Provider authorizes the Single-Use Token and Secret to be
+exchanged for a Multi-Use Token and Secret.
 <ul>
-<li>For Web-based Consumers, the Service Provider redirects to a pre-established Callback Endpoint URL with the Single Use Token and Single-Use Authentication Secret as arguments.</li>
-
-<li>Mobile and Set Top box clients wait for the User to enter their Single-Use Token and Single-Use Secret.</li>
-
-<li>Desktop-based Consumers wait for the User to assert that Authorization has completed.</li>
-</ul>
-</li>
-
-<li>
-<p>The Consumer exchanges the Single-Use Token and Secret for a Multi-User Token and Secret.</p>
-</li>
-
-<li>
-<p>The Consumer uses the Multi-Use Token, Multi-Use Secret, Consumer Key, and Consumer Secret to make authenticated requests to the Service Provider.</p>
-</li>
+<li>Note that in the case of a Web or Mobile based consumer the
+Single-Use Token and Secret will be generated by the Service Provider
+during this step.</li>
+<li>For web-based Consumers the Service Provider redirects to a
+pre-established Callback Endpoint URL with the Single-Use Token
+and Secret it has created and authorized.</li>
+<li>For Mobile and Set Top box Consumers the Service Provider displays
+the Single-Use Token and Secret to the User and the Consumer waits
+for the User to manually enter them within the Consumer application.</li>
+<li>For Desktop-based Consumers the Service Provider instructs the User
+to inform the Consumer that authorization has completed.</li>
+</ul></li>
+<li>The Consumer exchanges the Single-Use Token and Secret for a Multi-User
+Token and Secret.</li>
+<li>The Consumer uses the Multi-Use Token, Multi-Use Secret, Consumer Key, and
+Consumer Secret to make authenticated requests to the Service Provider. </li>
 </ol>
 
-<h4 id='obtaining_a_consumer_key'>Obtaining a Consumer Key</h4>
+<h4 id="obtaining_a_consumer_key">Obtaining a Consumer Key</h4>
 
-<p>OAuth includes a Consumer Key and matching Consumer Secret allowing the Service Provider to authenticate the Consumer (as opposed to authenticate the User). This allows the Service Provider to provide different access levels to Consumers (such as disabling API throttling or allowing access to more resources).The Service Provider must allow Consumer Developers to obtain a Consumer Key and corresponding Consumer Secret. The provisioning of these is entirely up to the Service Provider. The Consumer Key must be a string suitable for transmission in HTTP request parameters. The Consumer Secret may be either a randomized string or a Public/Private Key Pair. In the case that the Consumer Secret is a Public/Private Key Pair, the Service Provider only requires the Public Key, and should verify that the Consumer Developer is in fact the owner of the Private Key.</p>
+<p>OAuth includes a Consumer Key and matching Consumer Secret allowing the Service
+Provider to authenticate the Consumer (as opposed to authenticate the User).
+This allows the Service Provider to provide different access levels to
+Consumers (such as disabling API throttling or allowing access to more
+resources).The Service Provider must allow Consumer Developers to obtain a
+Consumer Key and corresponding Consumer Secret. The provisioning of these is
+entirely up to the Service Provider. The Consumer Key must be a string
+suitable for transmission in HTTP request parameters. The Consumer Secret may
+be either a randomized string or a Public/Private Key Pair. In the case that
+the Consumer Secret is a Public/Private Key Pair, the Service Provider only
+requires the Public Key, and should verify that the Consumer Developer is in
+fact the owner of the Private Key. </p>
 
-<p>The Service Provider must also provide documentation detailing the following:</p>
+<p>The Service Provider must also provide documentation detailing the following: </p>
 
 <ol>
-<li>
-<p>The Endpoint URLs that the Consumer will use when making OAuth requests;</p>
-
+<li>The Endpoint URLs that the Consumer will use when making OAuth requests; 
 <ul>
-<li>Authorization Endpoint URL</li>
-
-<li>API Endpoint URL</li>
-</ul>
-</li>
-
-<li>
-<p>The Signature Algorithms supported by the Service Provider. See &#8220;Recommended Signature Algorithms&#8221; for a summary of best practices.</p>
-</li>
-
-<li>
-<p>Any additional request parameters that the Service Provider requires in order to obtain an Token.</p>
-</li>
+<li>Authorization Endpoint URL </li>
+<li>API Endpoint URLs</li>
+</ul></li>
+<li>The Signature Algorithms supported by the Service Provider. See &#8220;Recommended
+Signature Algorithms&#8221; for a summary of best practices. </li>
+<li>Any additional request parameters that the Service Provider requires in
+order to obtain a Token.</li>
 </ol>
 
-<p>When registering for a Consumer Key, the Service Provider asks the Consumer Developer for information regarding the nature of the Consumer (web application, desktop application, mobile application etc). If the Consumer is a web application, the Consumer Developer must provide the callback URL where the Service Provider will send the OAuth Tokens. Libraries implementing OAuth for the convenience of Consumer applications must support configurable API Endpoint URLs.</p>
+<p>When registering for a Consumer Key, the Service Provider asks the Consumer
+Developer for information regarding the nature of the Consumer (web
+application, desktop application, mobile application etc). If the Consumer is a
+web application, the Consumer Developer must provide the callback URL where the
+Service Provider will send the OAuth Tokens. Libraries implementing OAuth for
+the convenience of Consumer applications must support configurable API Endpoint
+URLs. </p>
 
-<h4 id='obtaining_a_singleuse_token'>Obtaining a Single-Use Token</h4>
+<h4 id="obtaining_a_single_use_token">Obtaining a Single-Use Token</h4>
 
-<p>The Service Provider&#8217;s API documentation will describe the uses of a Single-Use Token, though generally it will be used by a Consumer wishing to obtain a Multi-Use Token for future OAuth requests. There are however valid cases where a Consumer may want an Token to use for only one OAuth request. It should be noted that if the User will be entering the Single-Use Token manually, such as on a mobile device, you should create a shorter &#8220;simplified&#8221; token.</p>
+<p>UI Note: It should be noted that if the User will be entering the Single-Use
+Token manually, such as on a mobile device, you should create a shorter
+&#8220;simplified&#8221; token.</p>
 
-<h4 id='webbased_consumers'>Web-based Consumers</h4>
+<h4 id="web_based_consumers">Web-based Consumers</h4>
 
-<p>Web-based Consumers obtain the Single-Use Token by way of an HTTP Redirect from the Service Provider to the Consumer&#8217;s Callback Endpoint URL. The request/response cycle is as follows:</p>
+<p>Web-based Consumers obtain the Single-Use Token by way of an HTTP Redirect from
+the Service Provider to the Consumer&#8217;s Callback Endpoint URL. The
+request/response cycle is as follows:</p>
 
-<p>Request</p>
+<h5 id="consumer_requests_an_authorized_single_use_token">Consumer Requests An Authorized Single-Use Token</h5>
 
-<p>To request a Single-Use Token, the Consumer constructs an application/x-www-form-urlencoded HTTP GET request to the Service Provider&#8217;s Authorization Endpoint URL which will be sent via the end user&#8217;s user-agent (i.e., Web Browser). This request contains the following parameters:</p>
+<p>To request a Single-Use Token, the Consumer constructs an
+<code>application/x-www-form-urlencoded</code> HTTP GET request to the Service Provider&#8217;s
+Authorization Endpoint URL which will be sent via the end user&#8217;s user-agent
+(i.e., Web Browser).</p>
+
+<h6 id="request">Request</h6>
+
+<p>This request contains the following parameters:</p>
 
 <ul>
-<li>oauth<em>consumer</em>key - The Consumer Key</li>
-
-<li>oauth<em>state (optional) - An application/x-www-form-urlencoded string that will be passed through unmodified to the Consumer (this parameter should only be used in the case of stateless web-based Consumers)</em></li>
-
+<li><code>oauth_consumer_key</code> - The Consumer Key </li>
+<li><code>oauth_state</code> (optional) - An <code>application/x-www-form-urlencoded</code> string that
+will be passed through unmodified to the Consumer (this parameter should only
+be used in the case of stateless web-based Consumers) </li>
 <li>any additional parameters, as required by the Service Provider.</li>
 </ul>
 
-<p>Once the request URL has been generated the Consumer issues an HTTP 302 Redirect to the Service Provider using that URL.</p>
+<p>Once the request URL has been generated the Consumer issues an HTTP 302
+Redirect to the Service Provider using that URL.</p>
 
-<p>Example</p>
+<h6 id="example">Example</h6>
 
-<p>In this example, the Consumer is requesting a Single-Use Token from the API Endpoint URL &#8220;https://sp.example.com/oauth/authorize&#8221; with the Consumer Key &#8220;0685bd91&#8221;.</p>
+<p>In this example, the Consumer is requesting a Single-Use Token from the
+Authorization Endpoint URL <code>https://sp.example.com/oauth/authorize</code>
+with the Consumer Key <code>0685bd91</code>. </p>
 
-<pre><code>https://sp.example.com/oauth/authorize?oauth_consumer_key=0685bd91 </code></pre>
+<pre><code>https://sp.example.com/oauth/authorize?oauth_consumer_key=0685bd91
+</code></pre>
 
-<p>Service Provider Obtains User Consent</p>
+<h5 id="service_provider_obtains_user_consent">Service Provider Obtains User Consent</h5>
 
-<p>Once the user has been authenticated by the Service Provider, the Service Provider must present the user with the option to grant access to the Consumer. The Service Provider should specify to the user which Protected Resources the Client is requesting, for how long the Client will have access to the resources, and other important information about the authorization that will be granted to the Client. If the user grants permission, the Service Provider should retain information about the transaction, including the token, associated user and Client data, the Requested Resources, time limits, etc. If the user denies the Client access, the Service Provider will not provide the Protected Resources to the Client.</p>
+<p>Once the user has been authenticated by the Service Provider, the Service
+Provider must present the user with the option to grant access to the Consumer.
+The Service Provider should specify to the user which Protected Resources the
+Client is requesting, for how long the Client will have access to the
+resources, and other important information about the authorization that will be
+granted to the Client. If the user grants permission, the Service Provider
+should retain information about the transaction, including the token,
+associated user and Client data, the Requested Resources, time limits, etc. If
+the user denies the Client access, the Service Provider will not provide the
+Protected Resources to the Client.</p>
 
-<p>Proposed UI? Too many protocols just leave user interaction as a hand-wavy step. It would be great to at least provide best practices and/or sample mock-ups. - Rich Conlan, 08/14/07 8:27 AM</p>
+<pre><code>Proposed UI? Too many protocols just leave user interaction as a hand-wavy
+step. It would be great to at least provide best practices and/or sample
+mock-ups. - Rich Conlan, 08/14/07 8:27 AM
+</code></pre>
 
-<h4 id='response'>Response</h4>
+<h5 id="service_provider_responds_with_authorized_single_use_token_and_secret">Service Provider Responds With Authorized Single-Use Token and Secret</h5>
 
-<p>Assuming permission is granted, the Service Provider will create a Single-Use Token and Single-Use Token Secret and deliver it to the Consumer via an HTTP Redirect. The response for a Web-based Consumer includes the following application/x-www-form-urlencoded GET parameters:</p>
+<p>Assuming permission is granted, the Service Provider will create a Single-Use
+Token and Single-Use Token Secret and deliver it to the Consumer via an HTTP
+Redirect.</p>
+
+<h6 id="response">Response</h6>
+
+<p>The response for a Web-based Consumer includes the following
+<code>application/x-www-form-urlencoded</code> GET parameters: </p>
 
 <ul>
-<li>oauth<em>su</em>token - The Single-Use Token.</li>
-
-<li>oauth<em>su</em>secret - The Single-Use Token Secret.</li>
-
-<li>if provided by the consumer in the initial authorization request: oauth<em>state - The unmodified content provided by the Consumer during the Request step.</em></li>
+<li><code>oauth_token</code> - The Single-Use Token. </li>
+<li><code>oauth_secret</code> - The Single-Use Token Secret. </li>
+<li><code>oauth_state</code> (if provided in request) - The unmodified content provided by
+the Consumer during the Request step.</li>
 </ul>
 
-<p>Example</p>
+<h6 id="example">Example</h6>
 
-<p>In this example, the Service Provider has created a Single-Use Token &#8220;c3e347b6a5001c16&#8221; and Secret &#8220;678dfge7dghek243&#8221; for the Consumer whose Callback Endpoint URL is &#8220;https://consumer.example.com/validate&#8221;, so the Service Provider will redirect the User to the following URL:</p>
+<p>In this example, the Service Provider has created a Single-Use Token
+<code>c3e347b6a5001c16</code> and Secret <code>678dfge7dghek243</code> for the Consumer whose
+Callback Endpoint URL is <code>https://consumer.example.com/validate</code>, so
+the Service Provider will redirect the User to the following URL: </p>
 
-<pre><code>https://consumer.example.com/validate?oauth_token=c3e347b6a5001c16&amp;amp;oath_token_secret=678dfge7dghek243</code></pre>
+<pre><code>https://consumer.example.com/validate?oauth_token=c3e347b6a5001c16&amp;oath_token_secret=678dfge7dghek243
+</code></pre>
 
-<p>Desktop Consumers Desktop consumers MUST first obtain a Single-Use Token, since they aren&#8217;t able to provide a Callback URL to which the Service Provider redirects the User. This is done by making a request to the appropriate Service Provider&#8217;s API Endpoint URL.</p>
+<h4 id="desktop_consumers">Desktop Consumers</h4>
 
-<p>Request Single-Use Token To request a Single-Use Token, the consumer constructs a request to the Service Provider&#8217;s API Endpoint URL. The request is signed as described in &#8220;Signing an API Request&#8221;. Because the Consumer does not yet have a Token or Token Secret, these fields are left empty.</p>
+<p>Desktop consumers MUST first obtain a Single-Use Token, since they aren&#8217;t
+able to provide a Callback URL to which the Service Provider redirects the
+User. This is done by making a request to the appropriate Service Provider&#8217;s
+API Endpoint URL.</p>
 
-<p>Assuming the request is properly signed and accepted by the Service Provider, the Service Provider then returns the Single-Use Token and a Single-Use Authentication Secret in the body of the response as newline separated name-value pairs, followed by any additional data the Service Provider wishes to provide.</p>
+<h5 id="request_single_use_token">Request Single-Use Token</h5>
 
-<p>Example</p>
+<p>To request a Single-Use Token, the consumer constructs a request to the
+Service Provider&#8217;s API Endpoint URL. The request is signed as described in
+&#8220;Signing an API Request&#8221;. Because the Consumer does not yet have a Token or
+Token Secret, these fields are left empty.</p>
 
-<p>In this example, the Consumer has a Consumer Key &#8220;1b20acc6&#8221; and a Consumer Secret &#8220;427a5979d9df7722&#8221;. The Service Provider&#8217;s API Endpoint URL is http://sp.example.com/oauth/get<em>su</em>token, and the request is using the HTTP GET method. The nonce is &#8220;17907867114999140772853922434221488511&#8221; and the timestamp of &#8220;1186953553&#8221;. Using SHA1 as the signing algorithm, the signature is then &#8220;26287279e66f7f183af02653e823625871167d16&#8221;, and the request is as follows:</p>
+<p>Assuming the request is properly signed and accepted by the Service Provider,
+the Service Provider then returns the Single-Use Token and a Single-Use
+Authentication Secret in the body of the response as newline separated
+name-value pairs, followed by any additional data the Service Provider wishes
+to provide.</p>
 
-<pre><code>https://sp.example.com/oauth/get_su_token?oauth_consumer_key=1b20acc6&amp;amp;oauth_nonce=17907867114999140772853922434221488511&amp;amp;oauth_ts=1186953553&amp;amp;oauth_sigalg=sha1&amp;amp;oauth_sig=26287279e66f7f183af02653e823625871167d16</code></pre>
+<h6 id="example">Example</h6>
 
-<p>The Service Provider generates a Single-Use Token &#8220;37bb49b4&#8221; and a corresponding secret &#8220;d0e46c19&#8221;, and returns the following as the body of the response:</p>
+<p>In this example, the Consumer has a Consumer Key <code>1b20acc6</code> and a
+Consumer Secret <code>427a5979d9df7722</code>. The Service Provider&#8217;s API Endpoint URL
+for requesting a Single-Use Token is
+<code>http://sp.example.com/oauth/get_su_token</code>, and the request is using the
+HTTP GET method. The nonce is <code>17907867114999140772853922434221488511</code> and
+the timestamp of <code>1186953553</code>. Using SHA1 as the signing algorithm, the
+signature is then <code>26287279e66f7f183af02653e823625871167d16</code>, and the request
+is as follows:</p>
+
+<pre><code>https://sp.example.com/oauth/get_su_token?oauth_consumer_key=1b20acc6&amp;oauth_nonce=17907867114999140772853922434221488511&amp;oauth_ts=1186953553&amp;oauth_sigalg=sha1&amp;oauth_sig=26287279e66f7f183af02653e823625871167d16
+</code></pre>
+
+<p>The Service Provider generates a Single-Use Token <code>37bb49b4</code> and a
+corresponding secret <code>d0e46c19</code>, and returns the following as the body of the
+response:</p>
 
 <pre><code>token=37bb49b4
-secret=d0e46c19</code></pre>
+secret=d0e46c19
+</code></pre>
 
-<p>Direct User to Service Provider</p>
+<h5 id="direct_user_to_service_provider">Direct User to Service Provider</h5>
 
-<p>To exchange a Single-Use Token for a Multi-Use Token and Secret, the Consumer must obtain approval from the User by directing the User to the Service Provider. The Consumer constructs an application/x-www-form-urlencoded HTTP GET request to the Service Provider&#8217;s Authorization Endpoint URL which will be sent via the end user&#8217;s user-agent (i.e., Web Browser). This request contains the following parameters:</p>
+<p>To exchange a Single-Use Token for a Multi-Use Token and Secret, the Consumer
+must obtain approval from the User by directing the User to the Service
+Provider. The Consumer constructs an <code>application/x-www-form-urlencoded</code>
+HTTP GET request to the Service Provider&#8217;s Authorization Endpoint URL which
+will be sent via the end user&#8217;s user-agent (i.e., Web Browser).</p>
+
+<h6 id="request">Request</h6>
+
+<p>This request contains the following parameters: </p>
 
 <ul>
-<li>
-<dt>oauth<em>consumer</em>key</dt>
-
-<dd>The Consumer Key</dd>
-</li>
-
-<li>
-<dt>oauth<em>token</em></dt>
-
-<dd>The Single-Use Token obtained in the previous step.</dd>
-</li>
-
-<li>
-<dt>oauth<em>state (optional)</em></dt>
-
-<dd>An application/x-www-form-urlencoded string that will be passed through unmodified to the Consumer (this parameter should only be used in the case of stateless web-based Consumers)</dd>
-</li>
-
+<li><code>oauth_consumer_key</code>
+: The Consumer Key </li>
+<li><code>oauth_token</code>
+: The Single-Use Token obtained in the previous step.</li>
+<li><code>oauth_state</code> (optional)
+: An <code>application/x-www-form-urlencoded</code> string that will be passed through
+unmodified to the Consumer (this parameter should only be used in the case of
+stateless web-based Consumers) </li>
 <li>any additional parameters, as required by the Service Provider.</li>
 </ul>
 
-<p>Once the request URL has been generated the Consumer directs the User to the URL.</p>
+<p>Once the request URL has been generated the Consumer directs the User to the
+URL.</p>
 
-<p>Example In this example, the Consumer is requesting a Single-Use Token and Secret from the Service Provider&#8217;s API Endpoint URL &#8220;https://sp.example.com/oauth/authorize&#8221; with the Consumer Key &#8220;0685bd91&#8221;.</p>
+<h6 id="example">Example</h6>
 
-<pre><code>https://sp.example.com/oauth/authorize?oauth_consumer_key=0685bd91 </code></pre>
+<p>In this example, the Consumer is requesting a Single-Use Token and Secret from
+the Service Provider&#8217;s Authorization Endpoint URL
+<code>https://sp.example.com/oauth/authorize</code> with the Consumer Key <code>0685bd91</code> and
+Single-Use Token <code>37bb49b4</code>.</p>
 
-<p>Service Provider Obtains User Consent The Service Provider Obtains User Consent in the same manner and with the same requirements as for Web-based Consumers.</p>
+<pre><code>https://sp.example.com/oauth/authorize?oauth_consumer_key=0685bd91&amp;oauth_token=37bb49b4
+</code></pre>
 
-<p>Response Assuming permission is granted, the Service Provider will create a Single-Use Token and Single-Use Secret for delivery to the Consumer. The Service Provider will present the Token and Secret to the User and instruct the User to enter them into the appropriate prompts within the Consumer application.</p>
+<h5 id="service_provider_obtains_user_consent">Service Provider Obtains User Consent</h5>
 
-<p>The delivery mechanism may vary depending on the use cases, application requirements, etc. Single-Use Tokens and Secrets can be returned via HTTP, SMS, email, IM, Postal Mail, etc. The Single-Use Token may be exchanged for a Multi-Use Token. Obtaining a Multi-Use Token Once the Consumer has a Single-Use Token and Secret, it can exchange them for a Multi-Use Token and Secret Request To request a Multi-Use Token, the Consumer makes an HTTP request to an Endpoint for Token Exchange as specified by the Service Provider&#8217;s documentation. It is suggested that this is a POST request, and that the Service Provider&#8217;s  documentation specifies the HTTP verb (GET or POST). The request MUST be signed with the Single-Use Token and Secret per the signing instructions below. Response If the request is valid, the Service Provider SHALL respond with text like so:</p>
+<p>The Service Provider Obtains User Consent in the same manner and with the same
+requirements as for Web-based Consumers.</p>
 
-<p>token=37bb49b4 secret=d0e46c19</p>
+<h6 id="response">Response</h6>
 
-<p>where the token and secret are encoded like x-www-form-urlencoded, followed by Service Provider specific data, as defined by the Service Provider&#8217;s API documentation. The Multi-Use Token and Secret are stored by the Consumer to use when signing future requests.  </p>
+<p>Assuming permission is granted, the Service Provider will instruct the User
+to inform the Consumer that authorization has completed at the appropriate
+prompt within the Consumer application.</p>
 
-<p>If the request is not successful, the Service Provider MUST respond with a HTTP 401 Not Authorized, and MAY include some further details about why the request wasn&#8217;t authorized. Signing an API Request All OAuth API requests MUST be signed by the Consumer and the signature verified by the Service Provider. The following steps describe the signature process: Required Request Parameters</p>
+<h5 id="obtaining_a_multi_use_token">Obtaining a Multi-Use Token</h5>
+
+<p>Once the Single-Use Token and Secret have been authorized, the Consumer can
+exchange them for a Multi-Use Token and Secret.</p>
+
+<h6 id="request">Request</h6>
+
+<p>To request a Multi-Use Token, the Consumer makes an HTTP request to an Endpoint
+for Token Exchange as specified by the Service Provider&#8217;s documentation. It is
+suggested that this is a POST request, and that the Service Provider&#8217;s
+documentation specifies the HTTP verb (GET or POST). The request MUST be signed
+with the Single-Use Token and Secret per the signing instructions below.</p>
+
+<h6 id="response">Response</h6>
+
+<p>If the request is valid, the Service Provider responds with text like so: </p>
+
+<pre><code>token=37bb49b4
+secret=d0e46c19
+</code></pre>
+
+<p>where the token and secret are encoded like <code>application/x-www-form-urlencoded</code>,
+followed by Service Provider specific data, as defined by the Service Provider&#8217;s
+API documentation. The Multi-Use Token and Secret are stored by the Consumer to
+use when signing future requests. </p>
+
+<p>If the request is not successful, the Service Provider MUST respond with a HTTP
+401 Not Authorized, and MAY include some further details about why the request
+wasn&#8217;t authorized.</p>
+
+<h4 id="signing_an_api_request">Signing an API Request</h4>
+
+<p>All OAuth API requests MUST be signed by the Consumer and the signature verified
+by the Service Provider. The following steps describe the signature process: </p>
+
+<h5 id="request_parameters">Request Parameters</h5>
+
+<p>All are required except where stated.</p>
 
 <ul>
-<li>
-<dt>oauth<em>consumer</em>key</dt>
-
-<dd>An API key. This is an arbitrary Consumer application specific identifier.</dd>
-</li>
-
-<li>
-<dt>oauth<em>secret</em></dt>
-
-<dd>The Secret that corresponds to the Consumer key.</dd>
-</li>
-
-<li>
-<dt>oauth<em>token</em></dt>
-
-<dd>An OAuth token. See the &#8220;Obtaining a Token&#8221; sections.</dd>
-</li>
-
-<li>
-<dt>oauth<em>token</em>secret</dt>
-
-<dd>An OAuth token secret. See the &#8220;Obtaining a Token&#8221; sections.</dd>
-</li>
-
-<li>
-<dt>oauth<em>nonce</em></dt>
-
-<dd>A one-time use value to verify the request has not been made before. See the &#8220;Generating Nonces&#8221; section.</dd>
-</li>
-
-<li>
-<dt>oauth<em>ts</em></dt>
-
-<dd>An integer representing the time the request was sent, expressed in number of seconds after January 1, 1970 00:00:00 GMT.</dd>
-</li>
-
-<li>
-<dt>oauth<em>sigalg</em></dt>
-
-<dd>The hashing algorithm that the Consumer used to sign the request.</dd>
-</li>
-
-<li>
-<dt>oauth<em>sig</em></dt>
-
-<dd>The signature.</dd>
-</li>
+<li><code>oauth_consumer_key</code>
+: An API key. This is an arbitrary Consumer application specific identifier. </li>
+<li><code>oauth_secret</code>
+: The Secret that corresponds to the Consumer key. </li>
+<li><code>oauth_token</code>
+: An OAuth token. See the &#8220;Obtaining a Token&#8221; sections. </li>
+<li><code>oauth_token_secret</code>
+: An OAuth token secret. See the &#8220;Obtaining a Token&#8221; sections.</li>
+<li><code>oauth_nonce</code>
+: A one-time use value to verify the request has not been made before. See the
+&#8220;Generating Nonces&#8221; section. </li>
+<li><code>oauth_ts</code>
+: An integer representing the time the request was sent, expressed in number of
+seconds after January 1, 1970 00:00:00 GMT. </li>
+<li><code>oauth_sigalg</code>
+: The hashing algorithm that the Consumer used to sign the request. </li>
+<li><code>oauth_sig</code>
+: The signature. </li>
 </ul>
 
-<p>Format of Request Parameters</p>
+<h5 id="format_of_request_parameters">Format of Request Parameters</h5>
 
 <p>The request parameters must be concatenated in the following order:</p>
 
-<p>oauth<em>secret, oauth</em>consumer<em>key, oauth</em>token, oath<em>token</em>secret, http<em>request</em>method, http<em>request</em>uri, normalized<em>request</em>parameters, oauth<em>nonce, oauth</em>ts</p>
+<pre><code>oauth_secret, oauth_consumer_key, oauth_token, oath_token_secret,
+http_request_method, http_request_uri, normalized_request_parameters,
+oauth_nonce, oauth_ts
+</code></pre>
 
-<p>In addition, any application specific parameters MUST be included in the Consumer&#8217;s Request and are the subject of the signature.</p>
+<p>In addition, any application specific parameters MUST be included in the
+Consumer&#8217;s Request and are the subject of the signature. </p>
 
-<p>After the Consumer has normalized the request parameters (see below), the following signing algorithm SHALL be used to generate the value of the &#8220;oauth<em>sig&#8221;:</em></p>
+<p>After the Consumer has normalized the request parameters (see below), the
+following signing algorithm SHALL be used to generate the value of the
+<code>oauth_sig</code>: </p>
 
 <ul>
-<li>
-<p>obtain the normalized<em>request</em>parameters, according to the algorithm described below (see: Normalizing Request Parameters)</p>
-</li>
+<li>obtain the normalized<em>request</em>parameters, according to the algorithm
+described below (see: Normalizing Request Parameters)</li>
+<li>generate an oauth_nonce (see Generating Nonces) </li>
+<li><p>concatenate the parameters in the following order: </p>
 
-<li>
-<p>generate an oauth<em>nonce (see Generating Nonces)</em></p>
-</li>
+<p>oauth<em>secret, oauth</em>consumer<em>key, oauth</em>token, http<em>request</em>method,
+http<em>request</em>uri, normalized<em>request</em>parameters, oauth<em>nonce, oauth</em>ts </p></li>
+<li><p>sign or hash the concatenated string according to the oauth_sigalg: </p>
 
-<li>
-<p>concatenate the parameters in the following order:</p>
+<p>oauth<em>sig = md5(concatenated</em>string) </p>
 
-<p>oauth<em>secret, oauth</em>consumer<em>key, oauth</em>token, http<em>request</em>method, http<em>request</em>uri, normalized<em>request</em>parameters, oauth<em>nonce, oauth</em>ts</p>
-</li>
-
-<li>
-<p>sign or hash the concatenated string according to the oauth<em>sigalg:</em></p>
-</li>
-</ul>
-
-<p>oauth<em>sig = md5(concatenated</em>string)</p>
-
-<p>oauth<em>sig = sha1(concatenated</em>string)</p>
+<p>oauth<em>sig = sha1(concatenated</em>string) </p>
 
 <p>oauth<em>sig = hmac</em>sha256(oauth<em>secret, concatenated</em>string)</p>
 
-<p>oauth<em>sig = openssl</em>x509<em>sign(private</em>certificate, concatenated<em>string) (in the case of using x509 certs, the Service Provider would have the Consumer&#8217;s public key and therefore would provide an empty string as the secret)</em></p>
+<p>oauth<em>sig = openssl</em>x509<em>sign(private</em>certificate, concatenated_string)
+(in the case of using x509 certs, the Service Provider would have the
+Consumer&#8217;s public key and therefore would provide an empty string as
+the secret)</p></li>
+</ul>
 
-<p>Example</p>
+<h5 id="example">Example</h5>
 
 <ol>
-<li>
-<p>Fetch the 3rd page of friends updates from Twitter for user 123456</p>
-</li>
+<li>Fetch the 3rd page of friends updates from Twitter for user 123456</li>
+<li><p>The basic API request looks like so:</p>
 
-<li>
-<p>The basic API request looks like so:</p>
+<p>http://twitter.com/statuses/with_friends/123456.json?page=3&amp;count=50</p></li>
+<li><p>Assuming your Consumer key is <code>0685bd91</code>, your Shared Secret is <code>3a2cd35</code>,
+and your OAuth Token is <code>540ad18</code>, your generated <code>oauth_nonce</code> is
+<code>MTgzNTYxODk4Mw</code>, the current <code>timestamp</code> is <code>1185517832</code>, and you are using
+SHA1 as your <code>oauth_sigalg</code>, we calculate the <code>oauth_sig</code> as:</p>
 
-<p>http://twitter.com/statuses/with<em>friends/123456.json?page=3&amp;count=50</em></p>
-</li>
-
-<li>
-<p>Assuming your Consumer key is &#8220;0685bd91&#8221;, your Shared Secret is &#8220;3a2cd35&#8221;, and your OAuth Token is &#8220;540ad18&#8221;, your generated oauth<em>nonce is &#8220;MTgzNTYxODk4Mw&#8221;, the current timestamp is 1185517832, and you are using SHA1 as your oauth</em>sigalg, we calculate the oauth<em>sig as:</em></p>
-
-<pre><code>oauth_sig = SHA1(&quot;3a2cd35 0685bd91 540ad18 GET /statuses/friends/123456.json count50page3 MTgzNTYxODk4Mw 1185517832&quot;)</code></pre>
-</li>
-
-<li>
-<p>We need to pass to the server (in cleartext) the Consumer key (oauth<em>key), the Token (oauth</em>token), the timestamp (oauth<em>ts), the nonce (oauth</em>nonce), the signing algorithm (oauth<em>sigalg), and the signed request (oauth</em>sig). Clients MUST NOT send the shared secret with the request, since doing so would compromise the entire request, as well as subsequent requests.</p>
-</li>
-
-<li>
-<p>The full signed request is then:</p>
+<p>oauth_sig = SHA1(&#8220;3a2cd35 0685bd91 540ad18 GET /statuses/friends/123456.json count50page3 MTgzNTYxODk4Mw 1185517832&#8221;)</p></li>
+<li><p>We need to pass to the server (in cleartext) the Consumer key (<code>oauth_key</code>),
+the Token (<code>oauth_token</code>), the timestamp (<code>oauth_ts</code>), the nonce
+(<code>oauth_nonce</code>), the signing algorithm (oauth_sigalg), and the signed
+request (<code>oauth_sig</code>).
+Clients MUST NOT send the shared secret with the request, since doing so
+would compromise the entire request, as well as subsequent requests.</p></li>
+<li><p>The full signed request is then:</p>
 
 <p>GET http://twitter.com/statuses/friends/123456.json?page=3&amp;count=50&amp;oauth<em>key=0685bd91&amp;oauth</em>token=540ad18&amp;oauth<em>nonce=MTgzNTYxODk4Mw&amp;oauth</em>ts=1181537927&amp;oauth<em>sigalg=sha1&amp;oauth</em>sig=7f762ca98931f60715c5452b09a9b56914d68568</p>
-</li>
+
+<p>XXX It feels like this ends early. What does twitter do? I assume it
+validates the signature, of course, but shouldn&#8217;t the protocol for that be
+spelled out? - Rich Conlan, 08/14/07 8:27 AM</p></li>
 </ol>
 
-<p>It feels like this ends early. What does twitter do? I assume it validates the signature, of course, but shouldn&#8217;t the protocol for that be spelled out? - Rich Conlan, 08/14/07 8:27 AM</p>
+<h3 id="normalizing_request_parameters">Normalizing Request Parameters</h3>
 
-<h4 id='normalizing_request_parameters'>Normalizing Request Parameters</h4>
-
-<p>The Consumer MUST first normalize the request parameters by following the steps below. It should be noted that the Consumer MUST NOT include any OAuth parameters, those beginning with &#8220;oauth&#8221;, in the data to be signed . The normalized string MUST then be used when generating the signature for a request.</p>
+<p>The Consumer MUST first normalize the request parameters by following the
+steps below. It should be noted that the Consumer MUST NOT include any OAuth
+parameters, those beginning with &#8220;oauth&#8221;, in the data to be signed . The
+normalized string MUST then be used when generating the signature for a
+request. </p>
 
 <ol>
-<li>
-<p>Sort the request parameters alphabetically by parameter name: e.g., page=3, count=50 becomes count=50, page=3</p>
-</li>
-
-<li>
-<p>Concatenate the name-value pairs: e.g., count50 and page3</p>
-</li>
-
-<li>
-<p>Concatenate all the resulting parameter strings: e.g., count50page3</p>
-
-<p>The encoding and format of the parameters and their values MUST not be changed during this process as the Service Provider will perform this same set of steps when verifying the signature.</p>
-</li>
+<li>Sort the request parameters alphabetically by parameter name:
+e.g., page=3, count=50 becomes count=50, page=3</li>
+<li>Concatenate the name-value pairs:
+e.g., count50 and page3</li>
+<li>Concatenate all the resulting parameter strings:
+e.g., count50page3</li>
 </ol>
 
-<p>Examples</p>
+<p>The encoding and format of the parameters and their values MUST not be changed
+during this process as the Service Provider will perform this same set of steps
+when verifying the signature.</p>
 
-<h4 id='ruby'>Ruby</h4>
+<h5 id="examples">Examples</h5>
 
-<p>Assuming a Hash of request parameters named &#8220;request<em>params&#8221;:</em></p>
+<h6 id="ruby">Ruby</h6>
 
-<pre><code>request_params.sort { |a,b| a[0].to_s &lt;=&gt; b[0].to_s }.map { |v| v.join(&#39;&#39;) }.join(&#39;&#39;)</code></pre>
+<p>Assuming a Hash of request parameters named <code>request_params</code>:</p>
 
-<h4 id='php'>PHP</h4>
+<pre><code>request_params.sort { |a,b| a[0].to_s &lt;=&gt; b[0].to_s }.map { |v| v.join('') }.join('')
+</code></pre>
 
-<p>Assuming an Array of request parameters named &#8220;$request<em>params&#8221;:</em></p>
+<h6 id="php">PHP</h6>
+
+<p>Assuming an Array of request parameters named <code>$request_params</code>:</p>
 
 <pre><code>ksort($request_params);
 
-$normalized = &#39;&#39;;
+$normalized = '';
 
 foreach ($request_params as $k =&gt; $v) {
   $normalized .= $k . $v;
 
-}</code></pre>
+}
+</code></pre>
 
-<h4 id='python'>Python</h4>
+<h6 id="python">Python</h6>
 
-<p>Assuming an dictionary of request parameters named &#8220;request<em>params&#8221;:</em></p>
+<p>Assuming an dictionary of request parameters named <code>request_params</code>:</p>
 
-<pre><code>normalized = &#39;&#39;
+<pre><code>normalized = ''
 keys = request_params.keys()
 keys.sort()
 for k in keys:
-  normalized += str(k)+str(request_params[k])</code></pre>
+  normalized += str(k)+str(request_params[k])
+</code></pre>
 
-<h3 id='generating_nonces'>Generating Nonces</h3>
+<h3 id="generating_nonces">Generating Nonces</h3>
 
-<p>A nonce is a random string, uniquely generated for each request. The nonce allows the Service Provider to verify that this request has never been made before and helps prevent against replay attacks. More information about nonces can be found on Wikipedia (http://en.wikipedia.org/wiki/Cryptographic<em>nonce).</em></p>
+<p>A nonce is a random string, uniquely generated for each request. The nonce
+allows the Service Provider to verify that this request has never been made
+before and helps prevent against replay attacks. More information about nonces
+can be found on Wikipedia (http://en.wikipedia.org/wiki/Cryptographic_nonce).</p>
 
-<h3 id='implementation_suggestions'>Implementation Suggestions</h3>
+<h3 id="implementation_suggestions">Implementation Suggestions</h3>
 
-<p>Timestamps should be good for 5 minutes, this gives sufficient time to deal with network latency, without becoming a security hole, or placing an unbearable burden on the server for tracking and storing nonces. Ideally servers would provide a method for retrieving what they think the current time is.</p>
+<p>Timestamps should be good for 5 minutes, this gives sufficient time to deal
+with network latency, without becoming a security hole, or placing an
+unbearable burden on the server for tracking and storing nonces. Ideally
+servers would provide a method for retrieving what they think the current time
+is.</p>
 
-<h3 id='open_questions'>Open Questions</h3>
+<h3 id="open_questions">Open Questions</h3>
 
 <ul>
 <li>Recommended Error messages &amp; HTTP response codes</li>
-
-<li>Specifically, handling of expired / invalid tokens, user-declined authorization, etc.</li>
-
-<li>HTTP Headers * Not mandated, but having a standard for including OAuth in the HTTP<em>AUTHORIZATION header would be nice.</em></li>
-
+<li>Specifically, handling of expired / invalid tokens, user-declined
+authorization, etc.</li>
+<li>HTTP Headers
+<ul>
+<li>Not mandated, but having a standard for including OAuth in the
+HTTP_AUTHORIZATION header would be nice.</li>
+</ul></li>
 <li>How to sign POSTs / PUTs etc.</li>
-
 <li>there is an explanation in the REST book that might help with this.</li>
-
-<li>Expiration of tokens, provisioning of Consumer keys and secrets are beyond the scope. As are application specific permissions.</li>
-
-<li>these things <em>might</em> get included in future revision of the oAuth spec as they become emergent practices.</li>
+<li>Expiration of tokens, provisioning of Consumer keys and secrets are beyond
+the scope. As are application specific permissions.</li>
+<li>these things <em>might</em> get included in future revision of the OAuth spec as
+they become emergent practices.</li>
 </ul>
 
-<h2 id='error_messages'>Error Messages</h2>
+<h2 id="error_messages">Error Messages</h2>
 
 <ul>
-<li>
-<p>HTTP 400 Bad Request</p>
-
+<li>HTTP 400 Bad Request
 <ul>
 <li>Bad nonce</li>
-
 <li>Bad timestamp</li>
-</ul>
-</li>
-
-<li>
-<p>HTTP 401 Unauthorized</p>
-
+</ul></li>
+<li>HTTP 401 Unauthorized
 <ul>
 <li>Invalid Consumer key</li>
-
 <li>Invalid token</li>
-
-<li>Invalid sig - AWS does a nice thing here where they give you the sig string (minus secret) that they expected you to be signing for easy comparison</li>
-
+<li>Invalid sig - AWS does a nice thing here where they give you the sig string (minus
+secret) that they expected you to be signing for easy comparison</li>
 <li>Token expired</li>
-
-<li>Unsupported signing algorithm (the suggested / basic one should be UNIVERSALLY IMPLEMENTED and provide an ADEQUATE level of security given the threat model)</li>
-
+<li>Unsupported signing algorithm (the suggested / basic one should be
+UNIVERSALLY IMPLEMENTED and provide an ADEQUATE level of security given the
+threat model)</li>
 <li>User denied</li>
-
 <li>User revoked token</li>
-</ul>
-</li>
+</ul></li>
 </ul>
 
 <p>Security Considerations</p>
