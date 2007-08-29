@@ -346,7 +346,7 @@ If the request is valid, the Service Provider SHALL respond with text like so:
     token=37bb49b4
     secret=d0e46c19
 
-where the token and secret are encoded like `application/x-www-form-urlencoded`,
+Where the token and secret are encoded like `application/x-www-form-urlencoded`,
 followed by Service Provider specific data, as defined by the Service Provider's
 API documentation. The Multi-Use Token and Secret are stored by the Consumer to
 use when signing future requests. 
@@ -435,7 +435,7 @@ following signing algorithm SHALL be used to generate the value of the
 	* oauth_token => 540ad18
 	* oauth_token_secret => x2s55k0
 	* oauth_nonce => MTgzNTYxODk4Mw
-	* oauth_ts` => 1185517832
+	* oauth_ts => 1185517832
 
        oauth_sig = SHA1("oauth_secret=3a2cd35&oauth_consumer_key=0685bd91&oauth_token=540ad18&oauth_token_secret=x2s55k0&http_request_method=GET&http_request_uri=http%3A%2F%2Ftwitter.com%2Fstatuses%2Ffriends/123456.json&normalized_request_parameters=count%3D50%26page%3D3&oauth_nonce=MTgzNTYxODk4Mw&oauth_ts=1185517832")
 
@@ -480,6 +480,20 @@ A nonce is a random string, uniquely generated for each request. The nonce
 allows the Service Provider to verify that this request has never been made
 before and helps prevent against replay attacks. More information about nonces
 can be found on Wikipedia (http://en.wikipedia.org/wiki/Cryptographic_nonce).
+
+### Using HTTP-Authorization Headers
+
+This section defines an RFC 2617 extension to support OAuth.  It uses the standard Authorization and WWW-Authenticate headers to pass credentials rather than using URL parameters.  All Consumers SHOULD be able to supply an OAuth Authorization header as an alternative to passing URL parameters.  It is RECOMMENDED that Service Providers accept such a header and such Service Providers MUST signal Consumers by returning the OAuth WWW-Authenticate header upon all requests for the protected resource.  For the remainder of this section, we assume that the Service Provider under discussion has chosen to support this extension.
+
+When using a HTTP-Authorization header, the OAuth Request Parameters are not included in the body of the request.  Rather they are included as the value of the header.
+
+    Authorization: OAuth oauth_token="540ad18" oauth_key="0685bd91" oauth_nonce="MTgzNTYxODk4Mw" oauth_ts="1185517832" oauth_sigalg="SHA1" oauth_sig="2d047740b53ae16f670750bef5bb5c2a0f398f30"
+
+To reject a request that lacks appropriate credentials, the Service Provider MUST respond with a 401 Unauthorized response.  Such a response MUST include at least one OAuth WWW-Authenticate header and MAY include additional WWW-Authenticate headers:
+
+    401 Unauthorized
+    ...
+    WWW-Authenticate: OAuth
 
 ### Implementation Suggestions
 
