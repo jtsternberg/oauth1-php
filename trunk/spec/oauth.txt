@@ -130,7 +130,7 @@ OAuth includes a Consumer Key and matching Consumer Secret allowing the Service
 Provider to authenticate the Consumer (as opposed to authenticate the User).
 This allows the Service Provider to provide different access levels to
 Consumers (such as disabling API throttling or allowing access to more
-resources).The Service Provider must allow Consumer Developers to obtain a
+resources). The Service Provider must allow Consumer Developers to obtain a
 Consumer Key and corresponding Consumer Secret. The provisioning of these is
 entirely up to the Service Provider. The Consumer Key must be a string
 suitable for transmission in HTTP request parameters. The Consumer Secret may
@@ -161,7 +161,7 @@ URLs.
 #### Obtaining a Single-Use Token 
 
 UI Note: It should be noted that if the User will be entering the Single-Use
-Token manually, such as on a mobile device, you should create a shorter
+Token manually, such as on a mobile device, Service Providers should create a shorter
 "simplified" token.
  
 #### Web-based Consumers 
@@ -341,7 +341,7 @@ with the Single-Use Token and Secret per the signing instructions below.
 
 ###### Response
 
-If the request is valid, the Service Provider responds with text like so: 
+If the request is valid, the Service Provider SHALL respond with text like so: 
 
     token=37bb49b4
     secret=d0e46c19
