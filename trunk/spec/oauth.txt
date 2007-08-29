@@ -360,7 +360,7 @@ wasn't authorized.
 All OAuth API requests MUST be signed by the Consumer and the signature verified
 by the Service Provider. The following steps describe the signature process: 
 
-##### Request Parameters
+##### OAuth Request Parameters
 
 All are required except where stated.
  
@@ -376,8 +376,8 @@ All are required except where stated.
 : A one-time use value to verify the request has not been made before. See the
   "Generating Nonces" section. 
 * `oauth_ts`
-: An integer representing the time the request was sent, expressed in number of
-  seconds after January 1, 1970 00:00:00 GMT. 
+: An integer representing the time of request, expressed in number of
+  seconds after January 1, 1970 00:00:00 GMT.
 * `oauth_sigalg`
 : The hashing algorithm that the Consumer used to sign the request. 
 * `oauth_sig`
@@ -391,22 +391,25 @@ The request parameters must be concatenated in the following order:
     http_request_method, http_request_uri, normalized_request_parameters,
     oauth_nonce, oauth_ts 
 
-In addition, any application specific parameters MUST be included in the
-Consumer's Request and are the subject of the signature. 
-
 After the Consumer has normalized the request parameters (see below), the
 following signing algorithm SHALL be used to generate the value of the
 `oauth_sig`: 
 
-* obtain the normalized_request_parameters, according to the algorithm
-  described below (see: Normalizing Request Parameters)
-* generate an oauth_nonce (see Generating Nonces) 
-* concatenate the parameters in the following order: 
+1. generate an oauth_nonce (see Generating Nonces) 
+
+2. normalize OAuth Request Parameters
+   1. Escape the request parameter values using the percent-encoding (%xx) mechanism described in RFC3986.
+   2. Concatenate the parameters resulting in name-value pairs separated by the
+      ASCII '=' symbol.
+      e.g., "oauth_secret=elephant" and "oauth_consumer_key=foo"
+
+3. Concatenate the resulting name-value pairs into one string separated by the ASCII '&'
+   symbol in the following order: 
 
     oauth_secret, oauth_consumer_key, oauth_token, http_request_method,
-    http_request_uri, normalized_request_parameters, oauth_nonce, oauth_ts 
+    http_request_uri, normalized_request_parameters, oauth_nonce, oauth_ts
 
-* sign or hash the concatenated string according to the oauth_sigalg: 
+4. sign or hash the concatenated string according to the chosen value of oauth_sigalg: 
 
     oauth_sig = md5(concatenated_string) 
 
@@ -426,22 +429,25 @@ following signing algorithm SHALL be used to generate the value of the
 
       http://twitter.com/statuses/with_friends/123456.json?page=3&count=50
 
-3. Assuming your Consumer key is `0685bd91`, your Shared Secret is `3a2cd35`,
-   and your OAuth Token is `540ad18`, your generated `oauth_nonce` is
-   `MTgzNTYxODk4Mw`, the current `timestamp` is `1185517832`, and you are using
-   SHA1 as your `oauth_sigalg`, we calculate the `oauth_sig` as:
+3. Assuming the use of the SHA1 signature method and the following values:
+	* oauth_secret => 3a2cd35
+	* oauth_consumer_key => 0685bd91
+	* oauth_token => 540ad18
+	* oauth_token_secret => x2s55k0
+	* oauth_nonce => MTgzNTYxODk4Mw
+	* oauth_ts` => 1185517832
 
-       oauth_sig = SHA1("3a2cd35 0685bd91 540ad18 GET /statuses/friends/123456.json count50page3 MTgzNTYxODk4Mw 1185517832")
+       oauth_sig = SHA1("oauth_secret=3a2cd35&oauth_consumer_key=0685bd91&oauth_token=540ad18&oauth_token_secret=x2s55k0&http_request_method=GET&http_request_uri=http%3A%2F%2Ftwitter.com%2Fstatuses%2Ffriends/123456.json&normalized_request_parameters=count%3D50%26page%3D3&oauth_nonce=MTgzNTYxODk4Mw&oauth_ts=1185517832")
 
-4. We need to pass to the server (in cleartext) the Consumer key (`oauth_key`),
+4. We need to pass to the server (in cleartext) the Consumer key (`oauth_consumer_key`),
    the Token (`oauth_token`), the timestamp (`oauth_ts`), the nonce
    (`oauth_nonce`), the signing algorithm (oauth_sigalg), and the signed
    request (`oauth_sig`).
-   Clients MUST NOT send the shared secret with the request, since doing so
+   Clients MUST NOT send any of the secrets with the request, since doing so
    would compromise the entire request, as well as subsequent requests.
 5. The full signed request is then:
 
-    GET http://twitter.com/statuses/friends/123456.json?page=3&count=50&oauth_key=0685bd91&oauth_token=540ad18&oauth_nonce=MTgzNTYxODk4Mw&oauth_ts=1181537927&oauth_sigalg=sha1&oauth_sig=7f762ca98931f60715c5452b09a9b56914d68568
+    GET http://twitter.com/statuses/friends/123456.json?page=3&count=50&oauth_key=0685bd91&oauth_token=540ad18&oauth_nonce=MTgzNTYxODk4Mw&oauth_ts=1181537927&oauth_sigalg=sha1&oauth_sig=2d047740b53ae16f670750bef5bb5c2a0f398f30
       
     XXX It feels like this ends early. What does twitter do? I assume it
     validates the signature, of course, but shouldn't the protocol for that be
@@ -449,21 +455,27 @@ following signing algorithm SHALL be used to generate the value of the
 
 ### Normalizing Request Parameters
 
-The Consumer MUST first normalize the request parameters by following the
-steps below. It should be noted that the Consumer MUST NOT include any OAuth
-parameters, those beginning with "oauth", in the data to be signed . The
-normalized string MUST then be used when generating the signature for a
-request. 
-  
-1. Sort the request parameters alphabetically by parameter name:
-   e.g., page=3, count=50 becomes count=50, page=3
-2. Concatenate the name-value pairs:
-   e.g., count50 and page3
-3. Concatenate all the resulting parameter strings:
-   e.g., count50page3
-    
-The encoding and format of the parameters and their values MUST not be changed
-during this process as the Service Provider will perform this same set of steps
+The Consumer MUST first normalize request parameters by following the steps
+below. OAuth Request Parameters (see above) MUST NOT be included in this
+process. The normalized string MUST then be used when generating the signature
+for a request.
+
+1. Escape the request parameter names and values using the percent-encoding
+   (%xx) mechanism described in RFC3986.
+1. Sort the request parameters alphabetically by parameter name. If two or
+   more parameters share the same name, then sort those parameters by their
+   values.
+   e.g., "count=50", "page=3"
+   e.g., "count=3", "count=50", "page=3"
+2. Concatenate the parameters resulting in name-value pairs separated by the
+   ASCII '=' symbol.
+   e.g., "count=50" and "page=3"
+3. Concatenate the name-value pairs into one string separated by the ASCII '&'
+   symbol.
+   e.g., count=50&page=3
+
+The encoding and format of the parameter names and their values MUST not be changed
+during this process.  The Service Provider will perform this same set of steps
 when verifying the signature.
 
 ##### Examples
