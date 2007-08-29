@@ -474,37 +474,6 @@ The encoding and format of the parameter names and their values MUST not be chan
 during this process.  The Service Provider will perform this same set of steps
 when verifying the signature.
 
-##### Examples
-
-###### Ruby
-
-Assuming a Hash of request parameters named `request_params`:
-
-    request_params.sort { |a,b| a[0].to_s <=> b[0].to_s }.map { |v| v.join('') }.join('')
-
-###### PHP
-
-Assuming an Array of request parameters named `$request_params`:
-
-    ksort($request_params);
-
-    $normalized = '';
-
-    foreach ($request_params as $k => $v) {
-      $normalized .= $k . $v;
-
-    }
-
-###### Python
-
-Assuming an dictionary of request parameters named `request_params`:
-
-    normalized = ''
-    keys = request_params.keys()
-    keys.sort()
-    for k in keys:
-      normalized += str(k)+str(request_params[k])
-
 ### Generating Nonces
 
 A nonce is a random string, uniquely generated for each request. The nonce
