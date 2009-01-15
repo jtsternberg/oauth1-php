@@ -16,6 +16,10 @@ class OAuthConsumer {/*{{{*/
     $this->secret = $secret;
     $this->callback_url = $callback_url;
   }/*}}}*/
+
+  function __toString() {/*{{{*/
+    return "OAuthConsumer[key=$this->key,secret=$this->secret]";
+  }/*}}}*/
 }/*}}}*/
 
 class OAuthToken {/*{{{*/
@@ -192,27 +196,23 @@ class OAuthRequest {/*{{{*/
     // do this
     if ($parameters) {
       $req = new OAuthRequest($http_method, $http_url, $parameters);
+    } else {
+      // collect request parameters from query string (GET) and post-data (POST) if appropriate (note: POST vars have priority)
+      $req_parameters = $_GET;
+      if ($http_method == "POST" && @$request_headers["Content-Type"] == "application/x-www-form-urlencoded") {
+        $req_parameters = array_merge($req_parameters, $_POST);
+      }
+
+      // next check for the auth header, we need to do some extra stuff
+      // if that is the case, namely suck in the parameters from GET or POST
+      // so that we can include them in the signature
+      if (@substr($request_headers['Authorization'], 0, 6) == "OAuth ") {
+        $header_parameters = OAuthRequest::split_header($request_headers['Authorization']);
+        $parameters = array_merge($req_parameters, $header_parameters);
+        $req = new OAuthRequest($http_method, $http_url, $parameters);
+      } else $req = new OAuthRequest($http_method, $http_url, $req_parameters);
     }
-    // next check for the auth header, we need to do some extra stuff
-    // if that is the case, namely suck in the parameters from GET or POST
-    // so that we can include them in the signature
-    else if (@substr($request_headers['Authorization'], 0, 5) == "OAuth") {
-      $header_parameters = OAuthRequest::split_header($request_headers['Authorization']);
-      if ($http_method == "GET") {
-        $req_parameters = $_GET;
-      } 
-      else if ($http_method == "POST") {
-        $req_parameters = $_POST;
-      } 
-      $parameters = array_merge($header_parameters, $req_parameters);
-      $req = new OAuthRequest($http_method, $http_url, $parameters);
-    }
-    else if ($http_method == "GET") {
-      $req = new OAuthRequest($http_method, $http_url, $_GET);
-    }
-    else if ($http_method == "POST") {
-      $req = new OAuthRequest($http_method, $http_url, $_POST);
-    }
+
     return $req;
   }/*}}}*/
 
@@ -238,7 +238,7 @@ class OAuthRequest {/*{{{*/
   }/*}}}*/
 
   public function get_parameter($name) {/*{{{*/
-    return $this->parameters[$name];
+    return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
   }/*}}}*/
 
   public function get_parameters() {/*{{{*/
@@ -364,8 +364,8 @@ class OAuthRequest {/*{{{*/
   /**
    * builds the Authorization: header
    */
-  public function to_header($realm="") {/*{{{*/
-    $out ='"Authorization: OAuth realm="' . $realm . '",';
+  public function to_header() {/*{{{*/
+    $out ='Authorization: OAuth realm=""';
     $total = array();
     foreach ($this->parameters as $k => $v) {
       if (substr($k, 0, 5) != "oauth") continue;
@@ -412,16 +412,13 @@ class OAuthRequest {/*{{{*/
    * parameters, has to do some unescaping
    */
   private static function split_header($header) {/*{{{*/
-    // remove 'OAuth ' at the start of a header 
-    $header = substr($header, 6); 
-
-    // error cases: commas in parameter values?
-    $parts = explode(",", $header);
+    // this should be a regex
+    // error cases: commas in parameter values
+    $parts = explode(",", substr($header, 6)); // skip past "OAuth " at beginning of Authorization header value
     $out = array();
     foreach ($parts as $param) {
       $param = ltrim($param);
-      // skip the "realm" param, nobody ever uses it anyway
-      if (substr($param, 0, 5) != "oauth") continue;
+      if (strpos($param, "realm=") === 0) continue; // exclude realm param, per section 9.1.1, bullet 1
 
       $param_parts = explode("=", $param);
 
