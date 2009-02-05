@@ -41,8 +41,8 @@ class OAuthToken {/*{{{*/
    * would respond to request_token and access_token calls with
    */
   function to_string() {/*{{{*/
-    return "oauth_token=" . OAuthUtil::urlencodeRFC3986($this->key) . 
-        "&oauth_token_secret=" . OAuthUtil::urlencodeRFC3986($this->secret);
+    return "oauth_token=" . OAuthUtil::urlencode_rfc3986($this->key) . 
+        "&oauth_token_secret=" . OAuthUtil::urlencode_rfc3986($this->secret);
   }/*}}}*/
 
   function __toString() {/*{{{*/
@@ -71,7 +71,7 @@ class OAuthSignatureMethod_HMAC_SHA1 extends OAuthSignatureMethod {/*{{{*/
       ($token) ? $token->secret : ""
     );
 
-    $key_parts = array_map(array('OAuthUtil','urlencodeRFC3986'), $key_parts);
+    $key_parts = OAuthUtil::urlencode_rfc3986($key_parts);
     $key = implode('&', $key_parts);
 
     return base64_encode( hash_hmac('sha1', $base_string, $key, true));
@@ -85,11 +85,11 @@ class OAuthSignatureMethod_PLAINTEXT extends OAuthSignatureMethod {/*{{{*/
 
   public function build_signature($request, $consumer, $token) {/*{{{*/
     $sig = array(
-      OAuthUtil::urlencodeRFC3986($consumer->secret)
+      OAuthUtil::urlencode_rfc3986($consumer->secret)
     );
 
     if ($token) {
-      array_push($sig, OAuthUtil::urlencodeRFC3986($token->secret));
+      array_push($sig, OAuthUtil::urlencode_rfc3986($token->secret));
     } else {
       array_push($sig, '');
     }
@@ -98,7 +98,7 @@ class OAuthSignatureMethod_PLAINTEXT extends OAuthSignatureMethod {/*{{{*/
     // for debug purposes
     $request->base_string = $raw;
 
-    return OAuthUtil::urlencodeRFC3986($raw);
+    return OAuthUtil::urlencode_rfc3986($raw);
   }/*}}}*/
 }/*}}}*/
 
@@ -186,7 +186,7 @@ class OAuthRequest {/*{{{*/
    */
   public static function from_request($http_method=NULL, $http_url=NULL, $parameters=NULL) {/*{{{*/
     $scheme = (!isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] != "on") ? 'http' : 'https';
-    @$http_url or $http_url = $scheme . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    @$http_url or $http_url = $scheme . '://' . $_SERVER['HTTP_HOST'] . ':' . $_SERVER['SERVER_PORT'] . $_SERVER['REQUEST_URI'];
     @$http_method or $http_method = $_SERVER['REQUEST_METHOD'];
     
     $request_headers = OAuthRequest::get_headers();
@@ -199,7 +199,7 @@ class OAuthRequest {/*{{{*/
     } else {
       // collect request parameters from query string (GET) and post-data (POST) if appropriate (note: POST vars have priority)
       $req_parameters = $_GET;
-      if ($http_method == "POST" && @$request_headers["Content-Type"] == "application/x-www-form-urlencoded") {
+      if ($http_method == "POST" && @strstr($request_headers["Content-Type"], "application/x-www-form-urlencoded") ) {
         $req_parameters = array_merge($req_parameters, $_POST);
       }
 
@@ -267,12 +267,12 @@ class OAuthRequest {/*{{{*/
     }
 		
     // Urlencode both keys and values
-    $keys = array_map(array('OAuthUtil', 'urlencodeRFC3986'), array_keys($params));
-    $values = array_map(array('OAuthUtil', 'urlencodeRFC3986'), array_values($params));
+    $keys = OAuthUtil::urlencode_rfc3986(array_keys($params));
+    $values = OAuthUtil::urlencode_rfc3986(array_values($params));
     $params = array_combine($keys, $values);
 
     // Sort by keys (natsort)
-    uksort($params, 'strnatcmp');
+    uksort($params, 'strcmp');
 
     // Generate key=value pairs
     $pairs = array();
@@ -307,7 +307,7 @@ class OAuthRequest {/*{{{*/
       $this->get_signable_parameters()
     );
 
-    $parts = array_map(array('OAuthUtil', 'urlencodeRFC3986'), $parts);
+    $parts = OAuthUtil::urlencode_rfc3986($parts);
 
     return implode('&', $parts);
   }/*}}}*/
@@ -351,11 +351,21 @@ class OAuthRequest {/*{{{*/
 
   /**
    * builds the data one would send in a POST request
+   *
+   * TODO(morten.fangel):
+   * this function might be easily replaced with http_build_query()
+   * and corrections for rfc3986 compatibility.. but not sure
    */
   public function to_postdata() {/*{{{*/
     $total = array();
     foreach ($this->parameters as $k => $v) {
-      $total[] = OAuthUtil::urlencodeRFC3986($k) . "=" . OAuthUtil::urlencodeRFC3986($v);
+      if (is_array($v)) {
+        foreach ($v as $va) {
+          $total[] = OAuthUtil::urlencode_rfc3986($k) . "[]=" . OAuthUtil::urlencode_rfc3986($va);
+        }
+      } else {
+        $total[] = OAuthUtil::urlencode_rfc3986($k) . "=" . OAuthUtil::urlencode_rfc3986($v);
+      }
     }
     $out = implode("&", $total);
     return $out;
@@ -369,7 +379,8 @@ class OAuthRequest {/*{{{*/
     $total = array();
     foreach ($this->parameters as $k => $v) {
       if (substr($k, 0, 5) != "oauth") continue;
-      $out .= ',' . OAuthUtil::urlencodeRFC3986($k) . '="' . OAuthUtil::urlencodeRFC3986($v) . '"';
+      if (is_array($v)) throw new OAuthException('Arrays not supported in headers');
+      $out .= ',' . OAuthUtil::urlencode_rfc3986($k) . '="' . OAuthUtil::urlencode_rfc3986($v) . '"';
     }
     return $out;
   }/*}}}*/
@@ -412,21 +423,22 @@ class OAuthRequest {/*{{{*/
    * parameters, has to do some unescaping
    */
   private static function split_header($header) {/*{{{*/
-    // this should be a regex
-    // error cases: commas in parameter values
-    $parts = explode(",", substr($header, 6)); // skip past "OAuth " at beginning of Authorization header value
-    $out = array();
-    foreach ($parts as $param) {
-      $param = ltrim($param);
-      if (strpos($param, "realm=") === 0) continue; // exclude realm param, per section 9.1.1, bullet 1
-
-      $param_parts = explode("=", $param);
-
-      // rawurldecode() used because urldecode() will turn a "+" in the
-      // value into a space
-      $out[$param_parts[0]] = rawurldecode(substr($param_parts[1], 1, -1));
+    $pattern = '/(([-_a-z]*)=("([^"]*)"|([^,]*)),?)/';
+    $offset = 0;
+    $params = array();
+    while (preg_match($pattern, $header, $matches, PREG_OFFSET_CAPTURE, $offset) > 0) {
+      $match = $matches[0];
+      $header_name = $matches[2][0];
+      $header_content = (isset($matches[5])) ? $matches[5][0] : $matches[4][0];
+      $params[$header_name] = OAuthUtil::urldecode_rfc3986( $header_content );
+      $offset = $match[1] + strlen($match[0]);
     }
-    return $out;
+  
+    if (isset($params['realm'])) {
+       unset($params['realm']);
+    }
+
+    return $params;
   }/*}}}*/
 
   /**
@@ -502,6 +514,7 @@ class OAuthServer {/*{{{*/
 
     // requires authorized request token
     $token = $this->get_token($request, $consumer, "request");
+
 
     $this->check_signature($request, $consumer, $token);
 
@@ -651,11 +664,11 @@ class OAuthDataStore {/*{{{*/
     // implement me
   }/*}}}*/
 
-  function fetch_request_token($consumer) {/*{{{*/
+  function new_request_token($consumer) {/*{{{*/
     // return a new token attached to this consumer
   }/*}}}*/
 
-  function fetch_access_token($token, $consumer) {/*{{{*/
+  function new_access_token($token, $consumer) {/*{{{*/
     // return a new access token attached to this consumer
     // for the user associated with this token if the request token
     // is authorized
@@ -734,17 +747,22 @@ class SimpleOAuthDataStore extends OAuthDataStore {/*{{{*/
 }/*}}}*/
 
 class OAuthUtil {/*{{{*/
-  public static function urlencodeRFC3986($string) {/*{{{*/
-    return str_replace('+', ' ',
-                       str_replace('%7E', '~', rawurlencode($string)));
-    
+  public static function urlencode_rfc3986($input) {/*{{{*/
+	if (is_array($input)) {
+		return array_map(array('OAuthUtil','urlencode_rfc3986'), $input);
+	} else if (is_scalar($input)) {
+		return str_replace('+', ' ',
+	                       str_replace('%7E', '~', rawurlencode($input)));
+	} else {
+		return '';
+	}
   }/*}}}*/
     
 
   // This decode function isn't taking into consideration the above 
   // modifications to the encoding process. However, this method doesn't 
   // seem to be used anywhere so leaving it as is.
-  public static function urldecodeRFC3986($string) {/*{{{*/
+  public static function urldecode_rfc3986($string) {/*{{{*/
     return rawurldecode($string);
   }/*}}}*/
 }/*}}}*/
