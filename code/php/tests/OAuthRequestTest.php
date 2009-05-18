@@ -13,173 +13,285 @@
 
 require_once dirname(__FILE__) . '/common.php';
 
-class OAuthRequestTest extends PHPUnit_Framework_TestCase { 
-  public function testFromRequestPost() {
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('foo'=>'bar', 'baz'=>'blargh'));
-    
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('POST', $r->get_normalized_http_method());
-    $this->assertEquals('http://testbed/test', $r->get_normalized_http_url());
-    $this->assertEquals(array('foo'=>'bar','baz'=>'blargh'), $r->get_parameters());
-  }
-  
-  public function testFromRequestPostGet() {
-    OAuthTestUtils::build_request('GET', 'http://testbed/test', array('foo'=>'bar', 'baz'=>'blargh'));    
-    $r = OAuthRequest::from_request();
-    
-    $this->assertEquals('GET', $r->get_normalized_http_method());
-    $this->assertEquals('http://testbed/test', $r->get_normalized_http_url());
-    $this->assertEquals(array('foo'=>'bar','baz'=>'blargh'), $r->get_parameters());
-  }
-  
-  public function testFromRequestHeader() {
-    $test_header = 'OAuth realm="",oauth_foo=bar,oauth_baz="bla,rgh"';
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array(), $test_header);
-    
-    $r = OAuthRequest::from_request();
-    
-    $this->assertEquals('POST', $r->get_normalized_http_method());
-    $this->assertEquals('http://testbed/test', $r->get_normalized_http_url());
-    $this->assertEquals(array('oauth_foo'=>'bar','oauth_baz'=>'bla,rgh'), $r->get_parameters(), 'Failed to split auth-header correctly');
-  }
+class OAuthRequestTest extends PHPUnit_Framework_TestCase {	
+	public function testCanGetSingleParameter() {
+		// Yes, a awesomely boring test.. But if this doesn't work, the other tests is unreliable
+		$request = new OAuthRequest('', '', array('test'=>'foo'));
+		$this->assertEquals( 'foo', $request->get_parameter('test'), 'Failed to read back parameter');
 
-  public function testNormalizeParameters() {
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('name'=>''));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('name=', $r->get_signable_parameters());
+		$request = new OAuthRequest('', '', array('test'=>array('foo', 'bar')));
+		$this->assertEquals( array('foo', 'bar'), $request->get_parameter('test'), 'Failed to read back parameter');
 
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('a'=>'b'));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('a=b', $r->get_signable_parameters());
-    
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('a'=>'b', 'c'=>'d'));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('a=b&c=d', $r->get_signable_parameters());
-    
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('a'=>array('x!y', 'x y')));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('a=x%20y&a=x%21y', $r->get_signable_parameters());
-    
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('x!y'=>'a', 'x'=>'a'));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('x=a&x%21y=a', $r->get_signable_parameters());
-    
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('a'=>1, 'c'=>'hi there', 'f'=>array(25, 50, 'a'), 'z'=>array('p', 't')));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('a=1&c=hi%20there&f=25&f=50&f=a&z=p&z=t', $r->get_signable_parameters());
-  }
-  
-  public function testNormalizeHttpUrl() {
-    OAuthTestUtils::build_request('POST', 'http://example.com', array());
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('http://example.com', $r->get_normalized_http_url());
-    
-    OAuthTestUtils::build_request('POST', 'https://example.com', array());
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('https://example.com', $r->get_normalized_http_url());
-    
-    // Tests that http on !80 and https on !443 keeps the port
-    OAuthTestUtils::build_request('POST', 'https://example.com:80', array());
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('https://example.com:80', $r->get_normalized_http_url());
-    
-    OAuthTestUtils::build_request('POST', 'http://example.com:443', array());
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('http://example.com:443', $r->get_normalized_http_url());
-  }
+	
+		$request = new OAuthRequest('', '', array('test'=>'foo', 'bar'=>'baz'));
+		$this->assertEquals( 'foo', $request->get_parameter('test'), 'Failed to read back parameter');
+		$this->assertEquals( 'baz', $request->get_parameter('bar'), 'Failed to read back parameter');
+	}
+	
+	public function testGetAllParameters() {
+		// Yes, a awesomely boring test.. But if this doesn't work, the other tests is unreliable
+		$request = new OAuthRequest('', '', array('test'=>'foo'));
+		$this->assertEquals( array('test'=>'foo'), $request->get_parameters(), 'Failed to read back parameters');
 
-  public function testGetBaseString() {
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('n'=>'v'));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('POST&http%3A%2F%2Ftestbed%2Ftest&n%3Dv', $r->get_signature_base_string());
-    
-    OAuthTestUtils::build_request('GET', 'http://example.com', array('n'=>'v'));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('GET&http%3A%2F%2Fexample.com&n%3Dv', $r->get_signature_base_string());
-    
-    
-    $params = array('oauth_version'=>'1.0', 'oauth_consumer_key'=>'dpf43f3p2l4k3l03', 
-          'oauth_timestamp'=>'1191242090', 'oauth_nonce'=>'hsu94j3884jdopsl',
-          'oauth_signature_method'=>'PLAINTEXT', 'oauth_signature'=>'ignored');
-    OAuthTestUtils::build_request('POST', 'https://photos.example.net/request_token', $params);     
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('POST&https%3A%2F%2Fphotos.example.net%2Frequest_token&oauth_'
-              .'consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dhsu94j3884j'
-              .'dopsl%26oauth_signature_method%3DPLAINTEXT%26oauth_timestam'
-              .'p%3D1191242090%26oauth_version%3D1.0', 
-              $r->get_signature_base_string());     
-              
-    $params = array('file'=>'vacation.jpg', 'size'=>'original', 'oauth_version'=>'1.0', 
-          'oauth_consumer_key'=>'dpf43f3p2l4k3l03', 'oauth_token'=>'nnch734d00sl2jdk',
-          'oauth_timestamp'=>'1191242096', 'oauth_nonce'=>'kllo9940pd9333jh',
-          'oauth_signature'=>'ignored', 'oauth_signature_method'=>'HMAC-SHA1');
-    OAuthTestUtils::build_request('GET', 'http://photos.example.net/photos', $params);      
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('GET&http%3A%2F%2Fphotos.example.net%2Fphotos&file%3Dvacation'
-              .'.jpg%26oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%'
-              .'3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26o'
-              .'auth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jd'
-              .'k%26oauth_version%3D1.0%26size%3Doriginal', 
-              $r->get_signature_base_string());
-              
-  }
+		$request = new OAuthRequest('', '', array('test'=>'foo', 'bar'=>'baz'));
+		$this->assertEquals( array('test'=>'foo', 'bar'=>'baz'), $request->get_parameters(), 'Failed to read back parameters');
 
-  // We only test two entries here. This is just to test that the correct 
-  // signature method is chosen. Generation of the signatures is tested 
-  // elsewhere, and so is the base-string the signature build upon.
-  public function testBuildSignature() {
-    $params = array('file'=>'vacation.jpg', 'size'=>'original', 'oauth_version'=>'1.0', 
-          'oauth_consumer_key'=>'dpf43f3p2l4k3l03', 'oauth_token'=>'nnch734d00sl2jdk',
-          'oauth_timestamp'=>'1191242096', 'oauth_nonce'=>'kllo9940pd9333jh',
-          'oauth_signature'=>'ignored', 'oauth_signature_method'=>'HMAC-SHA1');
-    OAuthTestUtils::build_request('GET', 'http://photos.example.net/photos', $params);      
-    $r = OAuthRequest::from_request();
-    
-    $cons = new OAuthConsumer('key', 'kd94hf93k423kf44');
-    $token = new OAuthToken('token', 'pfkkdhi9sl3r4s00');
-    $hmac = new OAuthSignatureMethod_HMAC_SHA1();
-    $plaintext = new OAuthSignatureMethod_PLAINTEXT();
-    
-    $this->assertEquals('tR3+Ty81lMeYAr/Fid0kMTYa/WM=', $r->build_signature($hmac, $cons, $token));
-    $this->assertEquals('kd94hf93k423kf44%26pfkkdhi9sl3r4s00', $r->build_signature($plaintext, $cons, $token));
-  }
+		$request = new OAuthRequest('', '', array('test'=>array('foo', 'bar')));
+		$this->assertEquals( array('test'=>array('foo', 'bar')), $request->get_parameters(), 'Failed to read back parameters');
+	}
+	
+	public function testSetParameters() {
+		$request = new OAuthRequest('', '');
+		$this->assertEquals( NULL, $request->get_parameter('test'), 'Failed to assert that non-existing parameter is NULL');
 
-  public function testSign() {
-    $params = array('file'=>'vacation.jpg', 'size'=>'original', 'oauth_version'=>'1.0', 
-          'oauth_consumer_key'=>'dpf43f3p2l4k3l03', 'oauth_token'=>'nnch734d00sl2jdk',
-          'oauth_timestamp'=>'1191242096', 'oauth_nonce'=>'kllo9940pd9333jh',
-          'oauth_signature'=>'ignored', 'oauth_signature_method'=>'HMAC-SHA1');
-    OAuthTestUtils::build_request('GET', 'http://photos.example.net/photos', $params);      
-    $r = OAuthRequest::from_request();
-    
-    $cons = new OAuthConsumer('key', 'kd94hf93k423kf44');
-    $token = new OAuthToken('token', 'pfkkdhi9sl3r4s00');
-    $hmac = new OAuthSignatureMethod_HMAC_SHA1();
-    $plaintext = new OAuthSignatureMethod_PLAINTEXT();
-    
-    $r->sign_request($hmac, $cons, $token);
-    
-    $params = $r->get_parameters();
-    $this->assertEquals('HMAC-SHA1', $params['oauth_signature_method']);
-    $this->assertEquals('tR3+Ty81lMeYAr/Fid0kMTYa/WM=', $params['oauth_signature']);
-    
-    $r->sign_request($plaintext, $cons, $token);
-    
-    $params = $r->get_parameters();
-    $this->assertEquals('PLAINTEXT', $params['oauth_signature_method']);
-    $this->assertEquals('kd94hf93k423kf44%26pfkkdhi9sl3r4s00', $params['oauth_signature']);
-  }
+		$request->set_parameter('test', 'foo');
+		$this->assertEquals( 'foo', $request->get_parameter('test'), 'Failed to set single-entry parameter');
 
-  public function testToPostdata() {
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('foo'=>'bar', 'baz'=>'blargh'));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('foo=bar&baz=blargh', $r->to_postdata());
+		$request->set_parameter('test', 'bar');
+		$this->assertEquals( array('foo', 'bar'), $request->get_parameter('test'), 'Failed to set single-entry parameter');
 
-    OAuthTestUtils::build_request('POST', 'http://testbed/test', array('foo'=>array('bar','tiki'), 'baz'=>'blargh'));
-    $r = OAuthRequest::from_request();
-    $this->assertEquals('foo[]=bar&foo[]=tiki&baz=blargh', $r->to_postdata());
+		$request->set_parameter('test', 'bar', false);
+		$this->assertEquals( 'bar', $request->get_parameter('test'), 'Failed to set single-entry parameter');
+	}
+	
+	public function testUnsetParameter() {
+		$request = new OAuthRequest('', '');
+		$this->assertEquals( NULL, $request->get_parameter('test'));
 
-  }
+		$request->set_parameter('test', 'foo');
+		$this->assertEquals( 'foo', $request->get_parameter('test'));
+
+		$request->unset_parameter('test');
+		$this->assertEquals( NULL, $request->get_parameter('test'), 'Failed to unset parameter');
+	}
+	
+	public function testCreateRequestFromConsumerAndToken() {
+		$cons = new OAuthConsumer('key', 'kd94hf93k423kf44');
+		$token = new OAuthToken('token', 'pfkkdhi9sl3r4s00');
+		
+		$request = OAuthRequest::from_consumer_and_token($cons, $token, 'POST', 'http://example.com');
+		$this->assertEquals('POST', $request->get_normalized_http_method());
+		$this->assertEquals('http://example.com', $request->get_normalized_http_url());
+		$this->assertEquals('1.0', $request->get_parameter('oauth_version'));
+		$this->assertEquals($cons->key, $request->get_parameter('oauth_consumer_key'));
+		$this->assertEquals($token->key, $request->get_parameter('oauth_token'));
+		$this->assertEquals(time(), $request->get_parameter('oauth_timestamp'));
+		$this->assertRegExp('/[0-9a-f]{32}/', $request->get_parameter('oauth_nonce'));
+		// We don't know what the nonce will be, except it'll be md5 and hence 32 hexa digits
+		
+		$request = OAuthRequest::from_consumer_and_token($cons, $token, 'POST', 'http://example.com', array('oauth_nonce'=>'foo'));
+		$this->assertEquals('foo', $request->get_parameter('oauth_nonce'));
+		
+		$request = OAuthRequest::from_consumer_and_token($cons, NULL, 'POST', 'http://example.com', array('oauth_nonce'=>'foo'));
+		$this->assertNull($request->get_parameter('oauth_token'));
+	}
+	
+	public function testBuildRequestFromPost() {
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'foo=bar&baz=blargh');
+		$this->assertEquals(array('foo'=>'bar','baz'=>'blargh'), OAuthRequest::from_request()->get_parameters(), 'Failed to parse POST parameters');
+	}
+	
+	public function testBuildRequestFromGet() {
+		OAuthTestUtils::build_request('GET', 'http://testbed/test?foo=bar&baz=blargh');		
+		$this->assertEquals(array('foo'=>'bar','baz'=>'blargh'), OAuthRequest::from_request()->get_parameters(), 'Failed to parse GET parameters');
+	}
+
+	public function testBuildRequestFromHeader() {
+		$test_header = 'OAuth realm="",oauth_foo=bar,oauth_baz="bla,rgh"';
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', '', $test_header);
+		$this->assertEquals(array('oauth_foo'=>'bar','oauth_baz'=>'bla,rgh'), OAuthRequest::from_request()->get_parameters(), 'Failed to split auth-header correctly');
+	}
+	
+	public function testHasProperParameterPriority() {
+		$test_header = 'OAuth realm="",oauth_foo=header';
+		OAuthTestUtils::build_request('POST', 'http://testbed/test?oauth_foo=get', 'oauth_foo=post', $test_header);
+		$this->assertEquals('header', OAuthRequest::from_request()->get_parameter('oauth_foo'), 'Loaded parameters in with the wrong priorities');		
+
+		OAuthTestUtils::build_request('POST', 'http://testbed/test?oauth_foo=get', 'oauth_foo=post');
+		$this->assertEquals('post', OAuthRequest::from_request()->get_parameter('oauth_foo'), 'Loaded parameters in with the wrong priorities');		
+
+		OAuthTestUtils::build_request('POST', 'http://testbed/test?oauth_foo=get');
+		$this->assertEquals('get', OAuthRequest::from_request()->get_parameter('oauth_foo'), 'Loaded parameters in with the wrong priorities');				
+	}
+	
+	public function testNormalizeHttpMethod() {
+		OAuthTestUtils::build_request('POST', 'http://testbed/test');
+		$this->assertEquals('POST', OAuthRequest::from_request()->get_normalized_http_method(), 'Failed to normalize HTTP method: POST');
+
+		OAuthTestUtils::build_request('post', 'http://testbed/test');
+		$this->assertEquals('POST', OAuthRequest::from_request()->get_normalized_http_method(), 'Failed to normalize HTTP method: post');
+
+		OAuthTestUtils::build_request('GET', 'http://testbed/test');
+		$this->assertEquals('GET', OAuthRequest::from_request()->get_normalized_http_method(), 'Failed to normalize HTTP method: GET');
+
+		OAuthTestUtils::build_request('PUT', 'http://testbed/test');
+		$this->assertEquals('PUT', OAuthRequest::from_request()->get_normalized_http_method(), 'Failed to normalize HTTP method: PUT');
+	}
+	
+	public function testNormalizeParameters() {
+		// This is mostly repeats of OAuthUtilTest::testParseParameters & OAuthUtilTest::TestBuildHttpQuery
+
+		// Tests taken from
+		// http://wiki.oauth.net/TestCases ("Normalize Request Parameters")
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'name');
+		$this->assertEquals( 'name=', OAuthRequest::from_request()->get_signable_parameters());
+
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'a=b');
+		$this->assertEquals( 'a=b', OAuthRequest::from_request()->get_signable_parameters());
+		
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'a=b&c=d');
+		$this->assertEquals( 'a=b&c=d', OAuthRequest::from_request()->get_signable_parameters());
+		
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'a=x%21y&a=x+y');
+		$this->assertEquals( 'a=x%20y&a=x%21y', OAuthRequest::from_request()->get_signable_parameters());
+		
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'x%21y=a&x=a');
+		$this->assertEquals( 'x=a&x%21y=a', OAuthRequest::from_request()->get_signable_parameters());
+		
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'a=1&c=hi there&f=25&f=50&f=a&z=p&z=t');
+		$this->assertEquals( 'a=1&c=hi%20there&f=25&f=50&f=a&z=p&z=t', OAuthRequest::from_request()->get_signable_parameters());
+	}
+	
+	public function testNormalizeHttpUrl() {
+		OAuthTestUtils::build_request('POST', 'http://example.com');
+		$this->assertEquals('http://example.com', OAuthRequest::from_request()->get_normalized_http_url());
+		
+		OAuthTestUtils::build_request('POST', 'https://example.com');
+		$this->assertEquals('https://example.com', OAuthRequest::from_request()->get_normalized_http_url());
+		
+		// Tests that http on !80 and https on !443 keeps the port
+		OAuthTestUtils::build_request('POST', 'http://example.com:8080');
+		$this->assertEquals('http://example.com:8080', OAuthRequest::from_request()->get_normalized_http_url());
+		
+		OAuthTestUtils::build_request('POST', 'https://example.com:80');
+		$this->assertEquals('https://example.com:80', OAuthRequest::from_request()->get_normalized_http_url());
+		
+		OAuthTestUtils::build_request('POST', 'http://example.com:443');
+		$this->assertEquals('http://example.com:443', OAuthRequest::from_request()->get_normalized_http_url());
+	}
+	
+	public function testBuildPostData() {
+		OAuthTestUtils::build_request('POST', 'http://example.com');
+		$this->assertEquals('', OAuthRequest::from_request()->to_postdata());
+
+		OAuthTestUtils::build_request('POST', 'http://example.com', 'foo=bar');
+		$this->assertEquals('foo=bar', OAuthRequest::from_request()->to_postdata());
+
+		OAuthTestUtils::build_request('GET', 'http://example.com?foo=bar');
+		$this->assertEquals('foo=bar', OAuthRequest::from_request()->to_postdata());	
+	}
+	
+	public function testBuildUrl() {
+		OAuthTestUtils::build_request('POST', 'http://example.com');
+		$this->assertEquals('http://example.com', OAuthRequest::from_request()->to_url());
+
+		OAuthTestUtils::build_request('POST', 'http://example.com', 'foo=bar');
+		$this->assertEquals('http://example.com?foo=bar', OAuthRequest::from_request()->to_url());
+
+		OAuthTestUtils::build_request('GET', 'http://example.com?foo=bar');
+		$this->assertEquals('http://example.com?foo=bar', OAuthRequest::from_request()->to_url());	
+	}
+
+	public function testConvertToString() {
+		OAuthTestUtils::build_request('POST', 'http://example.com');
+		$this->assertEquals('http://example.com', (string) OAuthRequest::from_request());
+
+		OAuthTestUtils::build_request('POST', 'http://example.com', 'foo=bar');
+		$this->assertEquals('http://example.com?foo=bar', (string) OAuthRequest::from_request());
+
+		OAuthTestUtils::build_request('GET', 'http://example.com?foo=bar');
+		$this->assertEquals('http://example.com?foo=bar', (string) OAuthRequest::from_request());	
+	}
+	
+	public function testBuildHeader() {
+		OAuthTestUtils::build_request('POST', 'http://example.com');
+		$this->assertEquals('Authorization: OAuth realm=""', OAuthRequest::from_request()->to_header());
+
+		OAuthTestUtils::build_request('POST', 'http://example.com', 'foo=bar');
+		$this->assertEquals('Authorization: OAuth realm=""', OAuthRequest::from_request()->to_header());
+
+		// Is headers supposted to be Urlencoded. More to the point:
+		// Should it be baz = bla,rgh or baz = bla%2Crgh ??
+		// - morten.fangel
+		OAuthTestUtils::build_request('POST', 'http://example.com', '', 'OAuth realm="",oauth_foo=bar,oauth_baz="bla,rgh"');
+		$this->assertEquals('Authorization: OAuth realm="",oauth_foo="bar",oauth_baz="bla%2Crgh"', OAuthRequest::from_request()->to_header());
+	}
+	
+	public function testWontBuildHeaderWithArrayInput() {
+		$this->setExpectedException('OAuthException');
+		OAuthTestUtils::build_request('POST', 'http://example.com', 'oauth_foo=bar&oauth_foo=baz');
+		OAuthRequest::from_request()->to_header();
+	}
+
+	public function testBuildBaseString() {
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'n=v');
+		$this->assertEquals('POST&http%3A%2F%2Ftestbed%2Ftest&n%3Dv', OAuthRequest::from_request()->get_signature_base_string());
+		
+		OAuthTestUtils::build_request('POST', 'http://testbed/test', 'n=v&n=v2');
+		$this->assertEquals('POST&http%3A%2F%2Ftestbed%2Ftest&n%3Dv%26n%3Dv2', OAuthRequest::from_request()->get_signature_base_string());
+		
+		OAuthTestUtils::build_request('GET', 'http://example.com?n=v');
+		$this->assertEquals('GET&http%3A%2F%2Fexample.com&n%3Dv', OAuthRequest::from_request()->get_signature_base_string());
+		
+		$params  = 'oauth_version=1.0&oauth_consumer_key=dpf43f3p2l4k3l03&oauth_timestamp=1191242090';
+		$params .= '&oauth_nonce=hsu94j3884jdopsl&oauth_signature_method=PLAINTEXT&oauth_signature=ignored';
+		OAuthTestUtils::build_request('POST', 'https://photos.example.net/request_token', $params);			
+		$this->assertEquals('POST&https%3A%2F%2Fphotos.example.net%2Frequest_token&oauth_'
+							.'consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%3Dhsu94j3884j'
+							.'dopsl%26oauth_signature_method%3DPLAINTEXT%26oauth_timestam'
+							.'p%3D1191242090%26oauth_version%3D1.0', 
+							OAuthRequest::from_request()->get_signature_base_string());									
+
+		$params  = 'file=vacation.jpg&size=original&oauth_version=1.0&oauth_consumer_key=dpf43f3p2l4k3l03';
+		$params .= '&oauth_token=nnch734d00sl2jdk&oauth_timestamp=1191242096&oauth_nonce=kllo9940pd9333jh';
+		$params .= '&oauth_signature=ignored&oauth_signature_method=HMAC-SHA1';
+		OAuthTestUtils::build_request('GET', 'http://photos.example.net/photos?'.$params);			
+		$this->assertEquals('GET&http%3A%2F%2Fphotos.example.net%2Fphotos&file%3Dvacation'
+							.'.jpg%26oauth_consumer_key%3Ddpf43f3p2l4k3l03%26oauth_nonce%'
+							.'3Dkllo9940pd9333jh%26oauth_signature_method%3DHMAC-SHA1%26o'
+							.'auth_timestamp%3D1191242096%26oauth_token%3Dnnch734d00sl2jd'
+							.'k%26oauth_version%3D1.0%26size%3Doriginal', 
+							OAuthRequest::from_request()->get_signature_base_string());
+	}
+
+	public function testBuildSignature() {
+		$params  = 'file=vacation.jpg&size=original&oauth_version=1.0&oauth_consumer_key=dpf43f3p2l4k3l03';
+		$params .= '&oauth_token=nnch734d00sl2jdk&oauth_timestamp=1191242096&oauth_nonce=kllo9940pd9333jh';
+		$params .= '&oauth_signature=ignored&oauth_signature_method=HMAC-SHA1';
+		OAuthTestUtils::build_request('GET', 'http://photos.example.net/photos?'.$params);			
+		$r = OAuthRequest::from_request();
+		
+		$cons = new OAuthConsumer('key', 'kd94hf93k423kf44');
+		$token = new OAuthToken('token', 'pfkkdhi9sl3r4s00');
+		
+		$hmac = new OAuthSignatureMethod_HMAC_SHA1();
+		$plaintext = new OAuthSignatureMethod_PLAINTEXT();
+		
+		$this->assertEquals('tR3+Ty81lMeYAr/Fid0kMTYa/WM=', $r->build_signature($hmac, $cons, $token));
+		$this->assertEquals('kd94hf93k423kf44%26pfkkdhi9sl3r4s00', $r->build_signature($plaintext, $cons, $token));
+	}
+
+	public function testSign() {
+		$params  = 'file=vacation.jpg&size=original&oauth_version=1.0&oauth_consumer_key=dpf43f3p2l4k3l03';
+		$params .= '&oauth_token=nnch734d00sl2jdk&oauth_timestamp=1191242096&oauth_nonce=kllo9940pd9333jh';
+		$params .= '&oauth_signature=ignored&oauth_signature_method=HMAC-SHA1';
+		OAuthTestUtils::build_request('GET', 'http://photos.example.net/photos?'.$params);			
+		$r = OAuthRequest::from_request();
+		
+		$cons = new OAuthConsumer('key', 'kd94hf93k423kf44');
+		$token = new OAuthToken('token', 'pfkkdhi9sl3r4s00');
+		
+		$hmac = new OAuthSignatureMethod_HMAC_SHA1();
+		$plaintext = new OAuthSignatureMethod_PLAINTEXT();
+		
+		$r->sign_request($hmac, $cons, $token);
+		$this->assertEquals('HMAC-SHA1', $r->get_parameter('oauth_signature_method'));
+		$this->assertEquals('tR3+Ty81lMeYAr/Fid0kMTYa/WM=', $r->get_parameter('oauth_signature'));
+		
+		$r->sign_request($plaintext, $cons, $token);
+		$this->assertEquals('PLAINTEXT', $r->get_parameter('oauth_signature_method'));
+		$this->assertEquals('kd94hf93k423kf44%26pfkkdhi9sl3r4s00', $r->get_parameter('oauth_signature'));
+	}
 }
 
 ?>

@@ -1,0 +1,5 @@
+<phpunit>
+  <testsuite name="OAuth">
+    <directory>tests</directory>
+  </testsuite>
+</phpunit>
