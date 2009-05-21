@@ -15,13 +15,11 @@ class OAuthTestUtils {
 	}
 
 	/**
-	 * Populates $_{SERVER,GET,POST}
+	 * Populates $_{SERVER,GET,POST} and whatever environment-variables needed to test everything..
 	 *
-	 * TODO: Should query-string params always be added to $_GET.. prolly..
-	 * 
 	 * @param string $method GET or POST
 	 * @param string $uri What URI is the request to (eg http://example.com/foo?bar=baz)
-	 * @param array $params What params should go with the request
+	 * @param string $post_data What should the post-data be
 	 * @param string $auth_header What to set the Authorization header to
 	 */
 	public static function build_request( $method, $uri, $post_data = '', $auth_header = '' ) {
@@ -46,6 +44,7 @@ class OAuthTestUtils {
 		$_SERVER['REQUEST_METHOD'] = $method;
 		$_SERVER['HTTP_HOST'] = $host;
 		$_SERVER['SERVER_PORT'] = $port;
+		$_SERVER['SCRIPT_NAME'] = $path;
 		$_SERVER['REQUEST_URI'] = $path . '?' . $query;
 		$_SERVER['QUERY_STRING'] = $query.'';
 		parse_str($query, $_GET);

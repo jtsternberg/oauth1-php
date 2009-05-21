@@ -84,6 +84,12 @@ class OAuthRequestTest extends PHPUnit_Framework_TestCase {
 		
 		$request = OAuthRequest::from_consumer_and_token($cons, NULL, 'POST', 'http://example.com', array('oauth_nonce'=>'foo'));
 		$this->assertNull($request->get_parameter('oauth_token'));
+		
+		// Test that parameters given in the $http_url instead of in the $parameters-parameter
+		// will still be picked up
+		$request = OAuthRequest::from_consumer_and_token($cons, $token, 'POST', 'http://example.com/?foo=bar');
+		$this->assertEquals('http://example.com/', $request->get_normalized_http_url());
+		$this->assertEquals('bar', $request->get_parameter('foo'));
 	}
 	
 	public function testBuildRequestFromPost() {
@@ -268,13 +274,13 @@ class OAuthRequestTest extends PHPUnit_Framework_TestCase {
 		$plaintext = new OAuthSignatureMethod_PLAINTEXT();
 		
 		$this->assertEquals('tR3+Ty81lMeYAr/Fid0kMTYa/WM=', $r->build_signature($hmac, $cons, $token));
-		$this->assertEquals('kd94hf93k423kf44%26pfkkdhi9sl3r4s00', $r->build_signature($plaintext, $cons, $token));
+		$this->assertEquals('kd94hf93k423kf44&pfkkdhi9sl3r4s00', $r->build_signature($plaintext, $cons, $token));
 	}
 
 	public function testSign() {
 		$params  = 'file=vacation.jpg&size=original&oauth_version=1.0&oauth_consumer_key=dpf43f3p2l4k3l03';
 		$params .= '&oauth_token=nnch734d00sl2jdk&oauth_timestamp=1191242096&oauth_nonce=kllo9940pd9333jh';
-		$params .= '&oauth_signature=ignored&oauth_signature_method=HMAC-SHA1';
+		$params .= '&oauth_signature=__ignored__&oauth_signature_method=HMAC-SHA1';
 		OAuthTestUtils::build_request('GET', 'http://photos.example.net/photos?'.$params);			
 		$r = OAuthRequest::from_request();
 		
@@ -284,13 +290,24 @@ class OAuthRequestTest extends PHPUnit_Framework_TestCase {
 		$hmac = new OAuthSignatureMethod_HMAC_SHA1();
 		$plaintext = new OAuthSignatureMethod_PLAINTEXT();
 		
+		// We need to test both what the parameter is, and how the serialized request is..
+		
 		$r->sign_request($hmac, $cons, $token);
 		$this->assertEquals('HMAC-SHA1', $r->get_parameter('oauth_signature_method'));
 		$this->assertEquals('tR3+Ty81lMeYAr/Fid0kMTYa/WM=', $r->get_parameter('oauth_signature'));
+		$expectedPostdata = 'file=vacation.jpg&oauth_consumer_key=dpf43f3p2l4k3l03&oauth_nonce=kllo9940pd9333jh&'
+				. 'oauth_signature=tR3%2BTy81lMeYAr%2FFid0kMTYa%2FWM%3D&oauth_signature_method=HMAC-SHA1&'
+				. 'oauth_timestamp=1191242096&oauth_token=nnch734d00sl2jdk&oauth_version=1.0&size=original';
+		$this->assertEquals( $expectedPostdata, $r->to_postdata());
 		
 		$r->sign_request($plaintext, $cons, $token);
 		$this->assertEquals('PLAINTEXT', $r->get_parameter('oauth_signature_method'));
-		$this->assertEquals('kd94hf93k423kf44%26pfkkdhi9sl3r4s00', $r->get_parameter('oauth_signature'));
+		$this->assertEquals('kd94hf93k423kf44&pfkkdhi9sl3r4s00', $r->get_parameter('oauth_signature'));
+		$expectedPostdata = 'file=vacation.jpg&oauth_consumer_key=dpf43f3p2l4k3l03&oauth_nonce=kllo9940pd9333jh&'
+				. 'oauth_signature=kd94hf93k423kf44%26pfkkdhi9sl3r4s00&oauth_signature_method=PLAINTEXT&'
+				. 'oauth_timestamp=1191242096&oauth_token=nnch734d00sl2jdk&oauth_version=1.0&size=original';
+		$this->assertEquals( $expectedPostdata, $r->to_postdata());
+		
 	}
 }
 
