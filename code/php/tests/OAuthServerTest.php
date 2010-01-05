@@ -76,8 +76,8 @@ class OAuthServerTest extends PHPUnit_Framework_TestCase {
 				$request->unset_parameter( $required );
 				$this->server->verify_request($request);
 				$this->fail('Allowed a request without `' . $required . '`');
-			} catch( OAuthException $e ) { /* expected */ }		}
-		
+			} catch( OAuthException $e ) { /* expected */ }
+		}
 	}
 		
 	public function testRejectPastTimestamp() {
