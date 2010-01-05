@@ -211,16 +211,19 @@ class OAuthRequestTest extends PHPUnit_Framework_TestCase {
 	
 	public function testBuildHeader() {
 		OAuthTestUtils::build_request('POST', 'http://example.com');
-		$this->assertEquals('Authorization: OAuth realm=""', OAuthRequest::from_request()->to_header());
+		$this->assertEquals('Authorization: OAuth', OAuthRequest::from_request()->to_header());
+		$this->assertEquals('Authorization: OAuth realm="test"', OAuthRequest::from_request()->to_header('test'));
 
 		OAuthTestUtils::build_request('POST', 'http://example.com', 'foo=bar');
-		$this->assertEquals('Authorization: OAuth realm=""', OAuthRequest::from_request()->to_header());
+		$this->assertEquals('Authorization: OAuth', OAuthRequest::from_request()->to_header());
+		$this->assertEquals('Authorization: OAuth realm="test"', OAuthRequest::from_request()->to_header('test'));
 
 		// Is headers supposted to be Urlencoded. More to the point:
 		// Should it be baz = bla,rgh or baz = bla%2Crgh ??
 		// - morten.fangel
 		OAuthTestUtils::build_request('POST', 'http://example.com', '', 'OAuth realm="",oauth_foo=bar,oauth_baz="bla,rgh"');
-		$this->assertEquals('Authorization: OAuth realm="",oauth_foo="bar",oauth_baz="bla%2Crgh"', OAuthRequest::from_request()->to_header());
+		$this->assertEquals('Authorization: OAuth,oauth_foo="bar",oauth_baz="bla%2Crgh"', OAuthRequest::from_request()->to_header());
+		$this->assertEquals('Authorization: OAuth realm="test",oauth_foo="bar",oauth_baz="bla%2Crgh"', OAuthRequest::from_request()->to_header('test'));
 	}
 	
 	public function testWontBuildHeaderWithArrayInput() {
