@@ -417,9 +417,11 @@ class OAuthRequest {
    * builds the Authorization: header
    */
   public function to_header($realm=null) {
-	if($realm)
+    $first = true;
+	if($realm) {
       $out = 'Authorization: OAuth realm="' . OAuthUtil::urlencode_rfc3986($realm) . '"';
-    else
+      $first = false;
+    } else
       $out = 'Authorization: OAuth';
 
     $total = array();
@@ -428,11 +430,12 @@ class OAuthRequest {
       if (is_array($v)) {
         throw new OAuthException('Arrays not supported in headers');
       }
-      $out .= ',' .
-              OAuthUtil::urlencode_rfc3986($k) .
+      $out .= ($first) ? ' ' : ',';
+      $out .= OAuthUtil::urlencode_rfc3986($k) .
               '="' .
               OAuthUtil::urlencode_rfc3986($v) .
               '"';
+      $first = false;
     }
     return $out;
   }
