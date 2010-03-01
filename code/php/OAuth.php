@@ -788,6 +788,8 @@ class OAuthUtil {
       $out = array();
       if( isset($_SERVER['CONTENT_TYPE']) )
         $out['Content-Type'] = $_SERVER['CONTENT_TYPE'];
+      if( isset($_ENV['CONTENT_TYPE']) )
+        $out['Content-Type'] = $_ENV['CONTENT_TYPE'];
 
       foreach ($_SERVER as $key => $value) {
         if (substr($key, 0, 5) == "HTTP_") {
