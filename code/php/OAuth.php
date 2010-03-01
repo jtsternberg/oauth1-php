@@ -786,6 +786,9 @@ class OAuthUtil {
       // otherwise we don't have apache and are just going to have to hope
       // that $_SERVER actually contains what we need
       $out = array();
+      if( isset($_SERVER['CONTENT_TYPE']) )
+        $out['Content-Type'] = $_SERVER['CONTENT_TYPE'];
+
       foreach ($_SERVER as $key => $value) {
         if (substr($key, 0, 5) == "HTTP_") {
           // this is chaos, basically it is just there to capitalize the first

@@ -129,5 +129,9 @@ class OAuthUtilTest extends PHPUnit_Framework_TestCase {
 		$_SERVER['HTTP_HOST'] = 'foo';
 		$_SERVER['HTTP_X_WHATEVER'] = 'bar';
 		$this->assertEquals( array('Host'=>'foo', 'X-Whatever'=>'bar'), OAuthUtil::get_headers() );
+		
+		// Test picking up the Content-Type of POST requests running as an Apache module but not having the ARH method
+		$_SERVER['CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
+		$this->assertEquals( array('Host'=>'foo', 'X-Whatever'=>'bar', 'Content-Type'=>'application/x-www-form-urlencoded'), OAuthUtil::get_headers() );
 	}
 }
