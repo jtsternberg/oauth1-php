@@ -741,24 +741,18 @@ class OAuthUtil {
   // Utility function for turning the Authorization: header into
   // parameters, has to do some unescaping
   // Can filter out any non-oauth parameters if needed (default behaviour)
+  // May 28th, 2010 - method updated to tjerk.meesters for a speed improvement.
+  //                  see http://code.google.com/p/oauth/issues/detail?id=163
   public static function split_header($header, $only_allow_oauth_parameters = true) {
-    $pattern = '/(([-_a-z]*)=("([^"]*)"|([^,]*)),?)/';
-    $offset = 0;
     $params = array();
-    while (preg_match($pattern, $header, $matches, PREG_OFFSET_CAPTURE, $offset) > 0) {
-      $match = $matches[0];
-      $header_name = $matches[2][0];
-      $header_content = (isset($matches[5])) ? $matches[5][0] : $matches[4][0];
-      if (preg_match('/^oauth_/', $header_name) || !$only_allow_oauth_parameters) {
-        $params[$header_name] = OAuthUtil::urldecode_rfc3986($header_content);
+    if (preg_match_all('/('.($only_allow_oauth_parameters ? 'oauth_' : '').'[a-z_-]*)=(:?"([^"]*)"|([^,]*))/', $header, $matches)) {
+      foreach ($matches[1] as $i => $h) {
+        $params[$h] = OAuthUtil::urldecode_rfc3986(empty($matches[3][$i]) ? $matches[4][$i] : $matches[3][$i]);
       }
-      $offset = $match[1] + strlen($match[0]);
+      if (isset($params['realm'])) {
+        unset($params['realm']);
+      }
     }
-
-    if (isset($params['realm'])) {
-      unset($params['realm']);
-    }
-
     return $params;
   }
 
@@ -774,7 +768,7 @@ class OAuthUtil {
       // returns the headers in the same case as they are in the
       // request
       $out = array();
-      foreach( $headers AS $key => $value ) {
+      foreach ($headers AS $key => $value) {
         $key = str_replace(
             " ",
             "-",
