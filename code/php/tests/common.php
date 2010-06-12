@@ -29,11 +29,11 @@ class OAuthTestUtils {
 
 		$parts = parse_url($uri);
 
-	    $port = @$parts['port'];
-	    $scheme = $parts['scheme'];
-	    $host = $parts['host'];
-	    $path = @$parts['path'];
-		$query = @$parts['query'];
+		$scheme = $parts['scheme'];
+		$port   = isset( $parts['port'] ) && $parts['port'] ? $parts['port'] : ( $scheme === 'https' ? '443' : '80' );
+		$host   = $parts['host'];
+		$path   = isset( $parts['path'] )  ? $parts['path']  : NULL;
+		$query  = isset( $parts['query'] ) ? $parts['query'] : NULL;
 
 	    $port or $port = ($scheme == 'https') ? '443' : '80';
 
