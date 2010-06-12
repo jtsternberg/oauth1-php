@@ -218,9 +218,9 @@ abstract class OAuthSignatureMethod_RSA_SHA1 extends OAuthSignatureMethod {
 }
 
 class OAuthRequest {
-  private $parameters;
-  private $http_method;
-  private $http_url;
+  protected $parameters;
+  protected $http_method;
+  protected $http_url;
   // for debug purposes
   public $base_string;
   public static $version = '1.0';
