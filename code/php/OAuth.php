@@ -851,7 +851,8 @@ class OAuthUtil {
       if (is_array($value)) {
         // If two or more parameters share the same name, they are sorted by their value
         // Ref: Spec: 9.1.1 (1)
-        natsort($value);
+        // June 12th, 2010 - changed to sort because of issue 164 by hidetaka
+        sort($value, SORT_STRING);
         foreach ($value as $duplicate_value) {
           $pairs[] = $parameter . '=' . $duplicate_value;
         }

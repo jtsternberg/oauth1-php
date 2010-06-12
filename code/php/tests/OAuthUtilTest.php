@@ -99,6 +99,14 @@ class OAuthUtilTest extends PHPUnit_Framework_TestCase {
 			'a=1&c=hi%20there&f=25&f=50&f=a&z=p&z=t',
 			OAuthUtil::build_http_query(array('a'=>'1', 'c' =>'hi there', 'f'=>array(25, 50, 'a'), 'z'=>array('p','t')))
 		);
+		
+		// From issue 164, by hidetaka
+		// Based on discussion at 
+		// http://groups.google.com/group/oauth/browse_thread/thread/7c698004be0d536/dced7b6c82b917b2?lnk=gst&q=sort#
+		$this->assertEquals(
+			'x=200&x=25&y=B&y=a',
+			OAuthUtil::build_http_query(array('x'=>array(25, 200), 'y'=>array('a', 'B')))
+		);
 	}
 	
 	public function testSplitHeader() {
