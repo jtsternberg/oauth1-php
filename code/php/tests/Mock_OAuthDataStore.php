@@ -40,14 +40,14 @@ class Mock_OAuthDataStore extends OAuthDataStore {
 		return NULL;
 	}
 
-	function new_request_token($consumer) {
+	function new_request_token($consumer, $callback = null) {
 		if ($consumer->key == $this->consumer->key) {
 			return $this->request_token;
 		}
 		return NULL;
 	}
 
-	function new_access_token($token, $consumer) {
+	function new_access_token($token, $consumer, $verifier = null) {
 		if ($consumer->key == $this->consumer->key
 			&& $token->key == $this->request_token->key) {
 			return $this->access_token;
