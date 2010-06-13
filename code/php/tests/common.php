@@ -35,8 +35,6 @@ class OAuthTestUtils {
 		$path   = isset( $parts['path'] )  ? $parts['path']  : NULL;
 		$query  = isset( $parts['query'] ) ? $parts['query'] : NULL;
 
-	    $port or $port = ($scheme == 'https') ? '443' : '80';
-
 		if( $scheme == 'https') {
 			$_SERVER['HTTPS'] = 'on';
 		}
