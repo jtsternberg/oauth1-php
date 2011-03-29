@@ -178,6 +178,10 @@ class OAuthRequestTest extends PHPUnit_Framework_TestCase {
 		OAuthTestUtils::build_request('POST', 'http://Example.COM');
 		$this->assertEquals('http://example.com', OAuthRequest::from_request()->get_normalized_http_url());
 		
+		// Emulate silly behavior by some clients, where there Host header includes the port
+		OAuthTestUtils::build_request('POST', 'http://example.com');
+		$_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'] . ':' . $_SERVER['SERVER_PORT'];
+		$this->assertEquals('http://example.com', OAuthRequest::from_request()->get_normalized_http_url());
 	}
 	
 	public function testBuildPostData() {

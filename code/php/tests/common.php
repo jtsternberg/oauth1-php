@@ -1,7 +1,6 @@
 <?php
 
 require dirname(__FILE__).'/../OAuth.php';
-require_once 'PHPUnit/Framework.php';
 
 /**
  * A simple utils class for methods needed
@@ -41,6 +40,7 @@ class OAuthTestUtils {
 
 		$_SERVER['REQUEST_METHOD'] = $method;
 		$_SERVER['HTTP_HOST'] = $host;
+		$_SERVER['SERVER_NAME'] = $host;
 		$_SERVER['SERVER_PORT'] = $port;
 		$_SERVER['SCRIPT_NAME'] = $path;
 		$_SERVER['REQUEST_URI'] = $path . '?' . $query;
