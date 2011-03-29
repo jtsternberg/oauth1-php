@@ -83,7 +83,7 @@ abstract class OAuthSignatureMethod {
    * @param string $signature
    * @return bool
    */
-  public function check_signature(&$request, $consumer, $token, $signature) {
+  public function check_signature($request, $consumer, $token, $signature) {
     $built = $this->build_signature($request, $consumer, $token);
 
     // Check for zero length, although unlikely here
