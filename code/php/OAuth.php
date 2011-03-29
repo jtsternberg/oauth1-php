@@ -383,7 +383,7 @@ class OAuthRequest {
 
     $scheme = (isset($parts['scheme'])) ? $parts['scheme'] : 'http';
     $port = (isset($parts['port'])) ? $parts['port'] : (($scheme == 'https') ? '443' : '80');
-    $host = (isset($parts['host'])) ? $parts['host'] : '';
+    $host = (isset($parts['host'])) ? strtolower($parts['host']) : '';
     $path = (isset($parts['path'])) ? $parts['path'] : '';
 
     if (($scheme == 'https' && $port != '443')

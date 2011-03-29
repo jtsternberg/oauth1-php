@@ -174,6 +174,10 @@ class OAuthRequestTest extends PHPUnit_Framework_TestCase {
 		
 		OAuthTestUtils::build_request('POST', 'http://example.com:443');
 		$this->assertEquals('http://example.com:443', OAuthRequest::from_request()->get_normalized_http_url());
+		
+		OAuthTestUtils::build_request('POST', 'http://Example.COM');
+		$this->assertEquals('http://example.com', OAuthRequest::from_request()->get_normalized_http_url());
+		
 	}
 	
 	public function testBuildPostData() {
