@@ -1,5 +1,5 @@
 <?php //vim: foldmethod=marker
-//require_once("OAuth.php");
+//require_once("../init.php");
 
 class TestOAuthServer extends OAuthServer {
   public function get_signature_methods() {
@@ -46,7 +46,7 @@ WpkUQDIDJEoFUzKMVuJf4KO/FJ345+BNLGgbJ6WujreoM1X/gYfdnJ/J
 EOD;
     return $cert;
   }
-} 
+}
 
 /**
  * A mock store for testing

@@ -1,6 +1,6 @@
 <?php
 
-require dirname(__FILE__).'/../OAuth.php';
+require dirname(__FILE__).'/../init.php';
 
 /**
  * A simple utils class for methods needed
@@ -10,7 +10,7 @@ class OAuthTestUtils {
 	private static function reset_request_vars() {
 		$_SERVER = array();
 		$_POST = array();
-		$_GET = array();	
+		$_GET = array();
 	}
 
 	/**
@@ -51,8 +51,8 @@ class OAuthTestUtils {
 			$_SERVER['HTTP_CONTENT_TYPE'] = 'application/x-www-form-urlencoded';
 			$_POST = parse_str($post_data);
 			OAuthRequest::$POST_INPUT = 'data:application/x-www-form-urlencoded,'.$post_data;
-		}	
-			
+		}
+
 		if( $auth_header != '' ) {
 			$_SERVER['HTTP_AUTHORIZATION'] = $auth_header;
 		}

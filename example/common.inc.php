@@ -1,6 +1,6 @@
 <?php
-require_once("../OAuth.php");
-require_once("../OAuth_TestServer.php");
+require_once("../init.php");
+require_once("../code/OAuth_TestServer.php");
 
 /*
  * Config Section
